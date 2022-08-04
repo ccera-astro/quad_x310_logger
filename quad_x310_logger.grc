@@ -32,18 +32,6 @@ options:
     state: enabled
 
 blocks:
-- name: decln
-  id: variable
-  parameters:
-    comment: ''
-    value: '0.0'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [272, 860.0]
-    rotation: 0
-    state: true
 - name: fft_size
   id: variable
   parameters:
@@ -66,18 +54,6 @@ blocks:
     bus_source: false
     bus_structure: null
     coordinate: [152, 860.0]
-    rotation: 0
-    state: true
-- name: longitude
-  id: variable
-  parameters:
-    comment: ''
-    value: '-76.03'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [352, 860.0]
     rotation: 0
     state: true
 - name: samp_rate
@@ -456,6 +432,23 @@ blocks:
     coordinate: [488, 452.0]
     rotation: 0
     state: true
+- name: decln
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: '"Local Declination"'
+    short_id: ''
+    type: eng_float
+    value: '0.0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [168, 1044.0]
+    rotation: 0
+    state: true
 - name: f1
   id: parameter
   parameters:
@@ -692,6 +685,74 @@ blocks:
     coordinate: [720, 420.0]
     rotation: 0
     state: true
+- name: g1
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: '"Channel 1 gain"'
+    short_id: ''
+    type: eng_float
+    value: '85.0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [328, 1044.0]
+    rotation: 0
+    state: true
+- name: g2
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: '"Channel 2 gain"'
+    short_id: ''
+    type: eng_float
+    value: '85.0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [480, 1044.0]
+    rotation: 0
+    state: true
+- name: g3
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: '"Channel 3 gain"'
+    short_id: ''
+    type: eng_float
+    value: '85.0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [632, 1044.0]
+    rotation: 0
+    state: true
+- name: g4
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: '"Channel 4 gain"'
+    short_id: ''
+    type: eng_float
+    value: '85.0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [776, 1044.0]
+    rotation: 0
+    state: true
 - name: import_0
   id: import
   parameters:
@@ -703,6 +764,23 @@ blocks:
     bus_source: false
     bus_structure: null
     coordinate: [176, 20.0]
+    rotation: 0
+    state: true
+- name: longitude
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: '"Local longitude"'
+    short_id: ''
+    type: eng_float
+    value: '-76.0413'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [24, 1044.0]
     rotation: 0
     state: true
 - name: qtgui_vector_sink_f_0
@@ -776,23 +854,6 @@ blocks:
     bus_source: false
     bus_structure: null
     coordinate: [2216, 156.0]
-    rotation: 0
-    state: true
-- name: rfgain
-  id: parameter
-  parameters:
-    alias: ''
-    comment: ''
-    hide: none
-    label: '"RF Gain"'
-    short_id: ''
-    type: eng_float
-    value: '85'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [688, 940.0]
     rotation: 0
     state: true
 - name: runtime
@@ -1046,8 +1107,8 @@ blocks:
     dc_offs_enb9: '""'
     dev_addr: addr=192.168.40.2,type=x300
     dev_args: master_clock_rate=200e6
-    gain0: rfgain
-    gain1: rfgain
+    gain0: g1
+    gain1: g2
     gain10: '0'
     gain11: '0'
     gain12: '0'
@@ -1058,7 +1119,7 @@ blocks:
     gain17: '0'
     gain18: '0'
     gain19: '0'
-    gain2: rfgain
+    gain2: g3
     gain20: '0'
     gain21: '0'
     gain22: '0'
@@ -1069,7 +1130,7 @@ blocks:
     gain27: '0'
     gain28: '0'
     gain29: '0'
-    gain3: rfgain
+    gain3: g4
     gain30: '0'
     gain31: '0'
     gain4: '0'
