@@ -106,9 +106,9 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
                     fp.write("%02d,%02d,%02d" % (ltp.tm_hour, ltp.tm_min, ltp.tm_sec))
                     fp.write(",%s," % curt)
                     fp.write("%.2f," % self.decln)
-                    fp.write("%.5f," % self.freqs[x])
+                    fp.write("%.5f," % (self.freqs[x]/1.0e6))
                     for v in self.fftbufs[x]:
-                        fp.write("%.3e," % v)
+                        fp.write("%.5e," % v)
                     fp.write("\n")
                     self.fftbufs[x] = np.zeros(self.fft_size, dtype=np.float32)
                     fp.close()
