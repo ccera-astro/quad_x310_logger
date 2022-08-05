@@ -587,7 +587,7 @@ blocks:
     longitude: longitude
     maxoutbuf: '0'
     minoutbuf: '0'
-    prefix: '"./"'
+    prefix: prefix
   states:
     _io_cache: ('Logger for multi vectors (FFT)', 'blk', [('fft_size', '2048'), ('f1',
       '1420405800.0'), ('f2', '1420405800.0'), ('f3', '611000000.0'), ('f4', '1000000000.0'),
@@ -783,6 +783,23 @@ blocks:
     coordinate: [24, 1044.0]
     rotation: 0
     state: true
+- name: prefix
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: '"File prefix"'
+    short_id: ''
+    type: str
+    value: '"./"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [840, 940.0]
+    rotation: 0
+    state: true
 - name: qtgui_vector_sink_f_0
   id: qtgui_vector_sink_f
   parameters:
@@ -870,7 +887,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [808, 940.0]
+    coordinate: [680, 940.0]
     rotation: 0
     state: true
 - name: single_pole_iir_filter_xx_0
