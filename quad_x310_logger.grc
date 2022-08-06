@@ -583,7 +583,7 @@ blocks:
     f3: f3
     f4: f4
     fft_size: fft_size
-    logtime: '10.0'
+    logtime: logtime
     longitude: longitude
     maxoutbuf: '0'
     minoutbuf: '0'
@@ -766,6 +766,40 @@ blocks:
     coordinate: [176, 20.0]
     rotation: 0
     state: true
+- name: integ
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: '"Integration time, seconds"'
+    short_id: ''
+    type: eng_float
+    value: '15.0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [832, 820.0]
+    rotation: 0
+    state: true
+- name: logtime
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: '"Logging time, seconds"'
+    short_id: ''
+    type: eng_float
+    value: '5.0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [656, 828.0]
+    rotation: 0
+    state: true
 - name: longitude
   id: parameter
   parameters:
@@ -895,7 +929,7 @@ blocks:
   parameters:
     affinity: ''
     alias: ''
-    alpha: 1.0/((samp_rate/fft_size)*10.0)
+    alpha: 1.0/((samp_rate/fft_size)*integ)
     comment: ''
     maxoutbuf: '0'
     minoutbuf: '0'
@@ -913,7 +947,7 @@ blocks:
   parameters:
     affinity: ''
     alias: ''
-    alpha: 1.0/((samp_rate/fft_size)*10.0)
+    alpha: 1.0/((samp_rate/fft_size)*integ)
     comment: ''
     maxoutbuf: '0'
     minoutbuf: '0'
@@ -931,7 +965,7 @@ blocks:
   parameters:
     affinity: ''
     alias: ''
-    alpha: 1.0/((samp_rate/fft_size)*10.0)
+    alpha: 1.0/((samp_rate/fft_size)*integ)
     comment: ''
     maxoutbuf: '0'
     minoutbuf: '0'
@@ -949,7 +983,7 @@ blocks:
   parameters:
     affinity: ''
     alias: ''
-    alpha: 1.0/((samp_rate/fft_size)*10.0)
+    alpha: 1.0/((samp_rate/fft_size)*integ)
     comment: ''
     maxoutbuf: '0'
     minoutbuf: '0'
