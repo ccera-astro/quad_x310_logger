@@ -3,10 +3,24 @@ BEGIN {FS=","
        STEP=10.0
        TSYS=120
        TMIN=10
+       IGNORE=0
+       FOOL="none"
        }
 /./ {lmst_hour=$4
      lmst_min=$5
      lmst_sec=$6
+     
+     if (FILENAME != FOOL)
+     {
+		FOOL = FILENAME
+	    ignore = IGNORE
+	 }
+     
+     if (ignore > 0)
+     {
+		ignore -=1
+	    next
+	 }
      
      lmst = lmst_hour + (lmst_min/60) + (lmst_sec/3600.0)
      ndx = (lmst*3600.0)/STEP
@@ -25,7 +39,7 @@ END {
         a = 0.3
         b = 1.0 - a
         minval = 99999.0
-        for (i = 0; i < int(86400/STEP); i++)
+        for (i = 1; i < int(86400/STEP); i++)
         {
             if (valuecnt[i] >= 1)
             {
@@ -41,7 +55,7 @@ END {
 				 }
             }
         }
-        for (i = 0; i < int(86400/STEP); i++)
+        for (i = 1; i < int(86400/STEP); i++)
         {
 			if (valuecnt[i] >= 1)
 			{
