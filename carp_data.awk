@@ -36,7 +36,7 @@ BEGIN {FS=","
 	 }
 END {
         av = -1
-        a = 0.45
+        a = 0.3
         b = 1.0 - a
         minval = 99999.0
         for (i = 1; i < int(86400/STEP); i++)
