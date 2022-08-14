@@ -16,8 +16,8 @@ args = parser.parse_args()
 #
 # Translate beam-width into transit time at the given declination
 #
-beamdwidth = args.beamwidth
-beamwidth = 4.0 / math.cos(math.radians(args.decln))
+beamwidth = args.beamwidth
+beamwidth *= 4.0 / math.cos(math.radians(args.decln))
 beamwidth *= 60.0
 
 # 
@@ -25,17 +25,15 @@ beamwidth *= 60.0
 #
 # Rule-of-thumb is this should be 10 times beamwidth
 #
-MLEN = beamwidth / args.interval
-MLEN *= 10
-MLEN = int(MLEN)
+mlen = beamwidth / args.interval
+mlen *= 10
+mlen = int(mlen)
+mint = 999999.99
 
-MLEN=300
 
 marray=[]
 mndx = 0
 
-alpha = 1.0/float(MLEN)
-beta = 1.0 - alpha
 mfilt = None
 while True:
     ln = sys.stdin.readline()
@@ -44,10 +42,15 @@ while True:
     toks=ln.replace("\n", "")
     toks=ln.split(" ")
     value=float(toks[1])
-    if (mndx < MLEN):
+    lmst=float(toks[0])
+    
+    #
+    # Preload the median filter
+    #
+    if (mndx < mlen):
         marray.append(value)
         mndx += 1
     else:
         mfilt = float(np.median(marray))
-        print ("%.5e" % (value - mfilt))
+        print ("%.3f %.5e" % (lmst, (value - mfilt)))
         marray = [value] + marray[:-1]

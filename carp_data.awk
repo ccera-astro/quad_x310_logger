@@ -5,8 +5,16 @@ BEGIN {FS=","
        TMIN=10
        IGNORE=0
        FOOL="none"
+       RFILIST=""
+       RFIDONE=0
        }
-/./ {lmst_hour=$4
+/./ {
+     if (RFIDONE == 0)
+     {
+         split(RFILIST,rfilist,",")
+         RFIDONE = 1
+     }
+     lmst_hour=$4
      lmst_min=$5
      lmst_sec=$6
      
@@ -27,9 +35,23 @@ BEGIN {FS=","
      ndx = int(ndx)
      
      value = 0.0
+     
      for (i = 9+REDUCE; i <= (NF-REDUCE); i++)
      {
-		value += $i
+        doit = 1
+        for (nd in rfilist)
+        {
+            funky = i - 9
+            ind = 0+rfilist[nd]
+			if (funky == ind or funky-1 == ind or funky+1 == ind)
+			{
+				doit = 0
+			}
+	    }
+	    if (doit == 1)
+	    {
+		    value += $i
+		}
 	 }
 	 values[ndx] += value
 	 valuecnt[ndx] += 1
