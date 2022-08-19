@@ -45,6 +45,18 @@ blocks:
     coordinate: [456, 860.0]
     rotation: 0
     state: true
+- name: irate
+  id: variable
+  parameters:
+    comment: ''
+    value: '10'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1008, 588.0]
+    rotation: 0
+    state: true
 - name: log10_k
   id: variable
   parameters:
@@ -100,7 +112,7 @@ blocks:
     bus_structure: null
     coordinate: [96, 588.0]
     rotation: 0
-    state: disabled
+    state: enabled
 - name: blocks_complex_to_mag_squared_0
   id: blocks_complex_to_mag_squared
   parameters:
@@ -245,7 +257,7 @@ blocks:
     comment: ''
     maxoutbuf: '0'
     minoutbuf: '0'
-    n: int(samp_rate/fft_size/5)
+    n: int(samp_rate/fft_size/irate)
     type: float
     vlen: fft_size
   states:
@@ -263,7 +275,7 @@ blocks:
     comment: ''
     maxoutbuf: '0'
     minoutbuf: '0'
-    n: int(samp_rate/fft_size/5)
+    n: int(samp_rate/fft_size/irate)
     type: float
     vlen: fft_size
   states:
@@ -281,7 +293,7 @@ blocks:
     comment: ''
     maxoutbuf: '0'
     minoutbuf: '0'
-    n: int(samp_rate/fft_size/5)
+    n: int(samp_rate/fft_size/irate)
     type: float
     vlen: fft_size
   states:
@@ -299,7 +311,7 @@ blocks:
     comment: ''
     maxoutbuf: '0'
     minoutbuf: '0'
-    n: int(samp_rate/fft_size/5)
+    n: int(samp_rate/fft_size/irate)
     type: float
     vlen: fft_size
   states:
@@ -471,7 +483,7 @@ blocks:
     bus_structure: null
     coordinate: [336, 612.0]
     rotation: 0
-    state: disabled
+    state: enabled
 - name: decln
   id: parameter
   parameters:
@@ -577,8 +589,8 @@ blocks:
       \  # other base classes are basic_block, decim_block, interp_block\n    \"\"\
       \"Embedded Python Block example - a simple multiply const\"\"\"\n\n    def __init__(self,\
       \ fft_size=2048,f1=1420.4058e6,f2=1420.4058e6,f3=611e6,f4=1000e6,\n        decln=0.0,longitude=-76.03,prefix=\"\
-      ./\", logtime=10.0):  # only default arguments here\n        \"\"\"arguments\
-      \ to this function show up as parameters in GRC\"\"\"\n        gr.sync_block.__init__(\n\
+      ./\", logtime=10.0, irate=10):  # only default arguments here\n        \"\"\"\
+      arguments to this function show up as parameters in GRC\"\"\"\n        gr.sync_block.__init__(\n\
       \            self,\n            name='Logger for multi vectors (FFT)',   # will\
       \ show up in GRC\n            in_sig=[(np.float32,fft_size)]*4,\n          \
       \  out_sig=None\n        )\n        # if an attribute with the same name as\
@@ -587,39 +599,50 @@ blocks:
       \ = f2\n        self.f3 = f3\n        self.f4 = f4\n        self.freqs = [self.f1,self.f2,self.f3,self.f4]\n\
       \        self.logtime = logtime\n        self.decln = decln\n        self.prefix\
       \ = prefix\n        self.longitude = longitude\n        self.then = time.time()\n\
-      \        self.mdarrays = [[]] * len(self.freqs)\n\n    def work(self, input_items,\
-      \ output_items):\n        #\n        # For each input channel\n        #\n \
-      \       for x in range(len(input_items)):\n            v = input_items[x]\n\
-      \            #\n            # For each of the vectors being presented in this\
-      \ channel\n            #\n            for wector in v:\n                #\n\
-      \                # Update buffer for later median-filter\n                #\n\
-      \                self.mdarrays[x].append(wector)\n        #\n        # Time\
-      \ to median filter and log\n        #\n        if ((time.time() - self.then)\
-      \ > self.logtime):\n            self.then = time.time()\n            for x in\
-      \ range(len(self.freqs)):\n\t\t\t\t\n\t\t\t\t#\n\t\t\t\t# If this mdarray has\
-      \ anything in it\n\t\t\t\t#\n                if (len(self.mdarrays[x]) > 0):\n\
-      \t\t\t\t\t#\n\t\t\t\t\t# Turn it into a first-class Numpy 2D array\n\t\t\t\t\
-      \t#\n                    a = np.array(self.mdarrays[x])\n                  \
-      \  \n                    #\n                    # Compute median on transposed\
-      \ axes\n                    #\n                    median = np.median(a.transpose(),axis=1)\n\
-      \                    \n                    #\n                    # \"Zero out\"\
-      \ the correspnoding mdarray\n                    #\n                    self.mdarrays[x]\
-      \ = []\n                    \n                    #\n                    # Get\
-      \ timestamps in both UTC and LMST\n                    #\n                 \
-      \   ltp = time.gmtime()\n                    ds = \"%04d%02d%02d\" % (ltp.tm_year,\
-      \ ltp.tm_mon, ltp.tm_mday)\n                    fname = self.prefix+\"%04d-%d-\"\
-      \ % (int(self.freqs[x]/1.e06), x)\n                    fname += ds\n       \
-      \             fname += \".csv\"\n                    fp = open(fname, \"a\"\
-      )\n                    #\n                    # Write headers\n            \
-      \        #\n                    curt = cur_sidereal(self.longitude)\n      \
-      \              fp.write(\"%02d,%02d,%02d\" % (ltp.tm_hour, ltp.tm_min, ltp.tm_sec))\n\
-      \                    fp.write(\",%s,\" % curt)\n                    fp.write(\"\
-      %.2f,\" % self.decln)\n                    fp.write(\"%.5f,\" % (self.freqs[x]/1.0e6))\n\
-      \                    \n                    #\n                    # Write data\
-      \ values\n                    #\n                    for v in median:\n    \
-      \                    fp.write(\"%.5e,\" % v)\n                    fp.write(\"\
-      \\n\")\n                    fp.close()\n                    \n             \
-      \   \n              \n        return len(input_items[0])\n"
+      \        self.mdarrays = [[]] * len(self.freqs)\n        self.irate = irate\n\
+      \        self.avgarrays = []\n        self.avgcount = []\n        for i in range(0,len(self.freqs)):\n\
+      \            self.avgarrays.append(np.zeros(self.fft_size,dtype=np.float32))\n\
+      \            self.avgcount.append(0)\n\n    def work(self, input_items, output_items):\n\
+      \        #\n        # For each input channel\n        #\n        for x in range(len(input_items)):\n\
+      \            v = input_items[x]\n            #\n            # For each of the\
+      \ vectors being presented in this channel\n            #\n            for wector\
+      \ in v:\n                #\n                # Update buffer for later median-filter\n\
+      \                #\n                self.mdarrays[x].append(wector)\n      \
+      \  #\n        # Time to median-reduce the data over a 1 second interval\n  \
+      \      #\n        if (len(self.mdarrays[0]) >= self.irate):\n            for\
+      \ x in range(len(self.freqs)):\n                #\n                # Turn it\
+      \ into a first-class Numpy 2D array\n                #\n                a =\
+      \ np.array(self.mdarrays[x])\n                \n                #\n        \
+      \        # Compute median on transposed axes\n                #\n          \
+      \      median = np.median(a.transpose(),axis=1)\n                self.avgarrays[x]\
+      \ = np.add(self.avgarrays[x], median)\n                self.avgcount[x] += 1\n\
+      \                \n                #\n                # \"Zero out\" the corresponding\
+      \ mdarray\n                #\n                self.mdarrays[x] = []\n      \
+      \  #\n        # Time to average and log\n        #\n        if ((time.time()\
+      \ - self.then) > self.logtime):\n            self.then = time.time()\n     \
+      \       for x in range(len(self.freqs)):\n                #\n              \
+      \  # If this avgarray has anything in it\n                #\n              \
+      \  if (self.avgcount[x] > 0):\n\t\t\t\t\t#\n\t\t\t\t\t# Compute average\n\t\t\
+      \t\t\t#\n                    av = np.divide(self.avgarrays[x], self.avgcount[x])\n\
+      \                    \n                    #\n                    # Zero-out\n\
+      \                    #\n                    self.avgarrays[x] = np.multiply(self.avgarrays[x],\
+      \ 0.0)\n                    self.avgcount[x] = 0\n                    \n   \
+      \                 #\n                    # Get timestamps in both UTC and LMST\n\
+      \                    #\n                    ltp = time.gmtime()\n          \
+      \          ds = \"%04d%02d%02d\" % (ltp.tm_year, ltp.tm_mon, ltp.tm_mday)\n\
+      \                    fname = self.prefix+\"%04d-%d-\" % (int(self.freqs[x]/1.e06),\
+      \ x)\n                    fname += ds\n                    fname += \".csv\"\
+      \n                    fp = open(fname, \"a\")\n                    #\n     \
+      \               # Write headers\n                    #\n                   \
+      \ curt = cur_sidereal(self.longitude)\n                    fp.write(\"%02d,%02d,%02d\"\
+      \ % (ltp.tm_hour, ltp.tm_min, ltp.tm_sec))\n                    fp.write(\"\
+      ,%s,\" % curt)\n                    fp.write(\"%.2f,\" % self.decln)\n     \
+      \               fp.write(\"%.5f,\" % (self.freqs[x]/1.0e6))\n              \
+      \      \n                    #\n                    # Write data values\n  \
+      \                  #\n                    for v in av:\n                   \
+      \     fp.write(\"%.5e,\" % v)\n                    fp.write(\"\\n\")\n     \
+      \               fp.close()\n                    \n                \n       \
+      \       \n        return len(input_items[0])\n"
     affinity: ''
     alias: ''
     comment: ''
@@ -629,6 +652,7 @@ blocks:
     f3: f3
     f4: f4
     fft_size: fft_size
+    irate: irate
     logtime: logtime
     longitude: longitude
     maxoutbuf: '0'
@@ -637,10 +661,11 @@ blocks:
   states:
     _io_cache: ('Logger for multi vectors (FFT)', 'blk', [('fft_size', '2048'), ('f1',
       '1420405800.0'), ('f2', '1420405800.0'), ('f3', '611000000.0'), ('f4', '1000000000.0'),
-      ('decln', '0.0'), ('longitude', '-76.03'), ('prefix', "'./'"), ('logtime', '10.0')],
-      [('0', 'float', 2048), ('1', 'float', 2048), ('2', 'float', 2048), ('3', 'float',
-      2048)], [], 'Embedded Python Block example - a simple multiply const', ['decln',
-      'f1', 'f2', 'f3', 'f4', 'fft_size', 'logtime', 'longitude', 'prefix'])
+      ('decln', '0.0'), ('longitude', '-76.03'), ('prefix', "'./'"), ('logtime', '10.0'),
+      ('irate', '10')], [('0', 'float', 2048), ('1', 'float', 2048), ('2', 'float',
+      2048), ('3', 'float', 2048)], [], 'Embedded Python Block example - a simple
+      multiply const', ['decln', 'f1', 'f2', 'f3', 'f4', 'fft_size', 'irate', 'logtime',
+      'longitude', 'prefix'])
     bus_sink: false
     bus_source: false
     bus_structure: null
@@ -1057,7 +1082,7 @@ blocks:
     bus_structure: null
     coordinate: [448, 92.0]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: srate
   id: parameter
   parameters:
@@ -1510,7 +1535,7 @@ blocks:
     bus_structure: null
     coordinate: [8, 116.0]
     rotation: 0
-    state: enabled
+    state: disabled
 
 connections:
 - [analog_fastnoise_source_x_0, '0', blocks_throttle_0, '0']
