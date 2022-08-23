@@ -54,7 +54,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1008, 588.0]
+    coordinate: [1312, 508.0]
     rotation: 0
     state: true
 - name: log10_k
@@ -172,7 +172,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [288, 52.0]
+    coordinate: [288, 84.0]
     rotation: 0
     state: true
 - name: blocks_head_0_0
@@ -190,7 +190,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [296, 196.0]
+    coordinate: [280, 212.0]
     rotation: 0
     state: true
 - name: blocks_head_0_0_0
@@ -208,7 +208,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [296, 332.0]
+    coordinate: [296, 340.0]
     rotation: 0
     state: true
 - name: blocks_head_0_0_0_0
@@ -388,7 +388,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [456, 44.0]
+    coordinate: [480, 76.0]
     rotation: 0
     state: true
 - name: blocks_stream_to_vector_0_0
@@ -406,7 +406,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [456, 180.0]
+    coordinate: [480, 196.0]
     rotation: 0
     state: true
 - name: blocks_stream_to_vector_0_0_0
@@ -424,7 +424,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [488, 316.0]
+    coordinate: [488, 324.0]
     rotation: 0
     state: true
 - name: blocks_stream_to_vector_0_0_0_0
@@ -879,7 +879,20 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [176, 20.0]
+    coordinate: [176, 12.0]
+    rotation: 0
+    state: true
+- name: import_0_0
+  id: import
+  parameters:
+    alias: ''
+    comment: ''
+    imports: import ra_funcs
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [280, 12.0]
     rotation: 0
     state: true
 - name: integ
@@ -1045,7 +1058,7 @@ blocks:
   parameters:
     affinity: ''
     alias: ''
-    alpha: (1.0/((samp_rate/fft_size)*integ))*2.0
+    alpha: ra_funcs.getalpha(1.0/integ,(srate/fft_size))
     comment: ''
     maxoutbuf: '0'
     minoutbuf: '0'
@@ -1063,7 +1076,7 @@ blocks:
   parameters:
     affinity: ''
     alias: ''
-    alpha: 1.0/((samp_rate/fft_size)*integ)*2.0
+    alpha: ra_funcs.getalpha(1.0/integ, (srate/fft_size))
     comment: ''
     maxoutbuf: '0'
     minoutbuf: '0'
@@ -1081,7 +1094,7 @@ blocks:
   parameters:
     affinity: ''
     alias: ''
-    alpha: 1.0/((samp_rate/fft_size)*integ)*2.0
+    alpha: ra_funcs.getalpha(1.0/integ,(srate/fft_size))
     comment: ''
     maxoutbuf: '0'
     minoutbuf: '0'
@@ -1099,7 +1112,7 @@ blocks:
   parameters:
     affinity: ''
     alias: ''
-    alpha: 1.0/((samp_rate/fft_size)*integ)*2.0
+    alpha: ra_funcs.getalpha(1.0/integ,(srate/fft_size))
     comment: ''
     maxoutbuf: '0'
     minoutbuf: '0'
@@ -1434,7 +1447,7 @@ blocks:
     iq_imbal_enb7: default
     iq_imbal_enb8: default
     iq_imbal_enb9: default
-    lo_export0: 'True'
+    lo_export0: 'False'
     lo_export1: 'False'
     lo_export10: 'False'
     lo_export11: 'False'
@@ -1467,7 +1480,7 @@ blocks:
     lo_export8: 'False'
     lo_export9: 'False'
     lo_source0: internal
-    lo_source1: companion
+    lo_source1: internal
     lo_source10: internal
     lo_source11: internal
     lo_source12: internal
@@ -1544,7 +1557,7 @@ blocks:
     sd_spec5: ''
     sd_spec6: ''
     sd_spec7: ''
-    show_lo_controls: 'True'
+    show_lo_controls: 'False'
     start_time: '-1.0'
     stream_args: ''
     stream_chans: '[]'
