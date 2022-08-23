@@ -1434,7 +1434,7 @@ blocks:
     iq_imbal_enb7: default
     iq_imbal_enb8: default
     iq_imbal_enb9: default
-    lo_export0: 'False'
+    lo_export0: 'True'
     lo_export1: 'False'
     lo_export10: 'False'
     lo_export11: 'False'
@@ -1467,7 +1467,7 @@ blocks:
     lo_export8: 'False'
     lo_export9: 'False'
     lo_source0: internal
-    lo_source1: internal
+    lo_source1: companion
     lo_source10: internal
     lo_source11: internal
     lo_source12: internal
@@ -1544,7 +1544,7 @@ blocks:
     sd_spec5: ''
     sd_spec6: ''
     sd_spec7: ''
-    show_lo_controls: 'False'
+    show_lo_controls: 'True'
     start_time: '-1.0'
     stream_args: ''
     stream_chans: '[]'
