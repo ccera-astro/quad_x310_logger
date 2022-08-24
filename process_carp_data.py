@@ -37,6 +37,7 @@ parser.add_argument("--tsys", type=float, help="Tsys", default=100.0)
 parser.add_argument("--tmin", type=float, help="Dataset minimum temperature", default=15.0)
 parser.add_argument("--alpha", type=float, help="Smoothing alpha value", default=0.25)
 parser.add_argument("--reduce", type=int, help="Reduce bandwidth amount", default=0)
+parser.add_argument("--datastart", type=int, help="Data starting column", default=9)
 
 
 args = parser.parse_args()
@@ -67,12 +68,12 @@ for f in args.file:
 		#
 		# Remember the header pieces on each record
 		#
-		htoks = toks[0:8]
+		htoks = toks[0:args.datastart]
 		
 		#
 		# The rest are the data
 		#
-		toks = toks[8:]
+		toks = toks[args.datastart:]
 		if (len(toks) != 2049):
 			raise ValueError("Input contains incorrect number of tokens")
 		
