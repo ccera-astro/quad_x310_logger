@@ -599,31 +599,42 @@ blocks:
       :\")\n    hours=int(tokens[0])\n    minutes=int(tokens[1])\n    seconds=int(float(tokens[2]))\n\
       \    sidt = \"%02d,%02d,%02d\" % (hours, minutes, seconds)\n    return (sidt)\n\
       \n\nclass blk(gr.sync_block):  # other base classes are basic_block, decim_block,\
-      \ interp_block\n    \"\"\"Embedded Python Block example - a simple multiply\
-      \ const\"\"\"\n\n    def __init__(self, fft_size=2048,f1=1420.4058e6,f2=1420.4058e6,f3=611e6,f4=1000e6,\n\
+      \ interp_block\n    \"\"\"4-channel FFT logger with two layers of filters\n\
+      \         fft_size - fixed at 2048\n         f1  - channel 1 frequency\n   \
+      \      f2  - channel 2 frequency\n         f3  - channel 3 frequency\n     \
+      \    f4  - channel 4 frequency\n         decln   - declination (decimal degrees)\n\
+      \         longitude - longitude (decimal degrees)\n         prefix - filename\
+      \ prefix for log files\n         logtime  - logging interval, in seconds\n \
+      \        irate   - internal post-FFT sample-rate (Hz)\n         caldev  - calibration\
+      \ device identifier (for libpyftdi)\n         caltimes  - comma-separated list\
+      \ of LMST times to turn on CAL\n         caldur    - CAL duration, in seconds\n\
+      \         bandwidth  - input bandwidth, Hz\n         fmode   - filtering mode:\
+      \ 'median', 'min', 'max'\"\"\"\n\n    def __init__(self, fft_size=2048,f1=1420.4058e6,f2=1420.4058e6,f3=611e6,f4=1000e6,\n\
       \        decln=0.0,longitude=-76.03,prefix=\"./\", logtime=10.0, irate=10, caldev=\"\
-      \", caltimes=\"\", caldur=0.0):  # only default arguments here\n        \"\"\
-      \"arguments to this function show up as parameters in GRC\"\"\"\n        gr.sync_block.__init__(\n\
-      \            self,\n            name='Logger for multi vectors (FFT)',   # will\
-      \ show up in GRC\n            in_sig=[(np.float32,fft_size)]*4,\n          \
-      \  out_sig=None\n        )\n        # if an attribute with the same name as\
-      \ a parameter is found,\n        # a callback is registered (properties work,\
-      \ too).\n        self.fft_size = fft_size\n        self.f1 = f1\n        self.f2\
-      \ = f2\n        self.f3 = f3\n        self.f4 = f4\n        self.freqs = [self.f1,self.f2,self.f3,self.f4]\n\
+      \", caltimes=\"\", caldur=0.0,\n        bandwidth=1e6, fmode=\"median\"):  #\
+      \ only default arguments here\n        \"\"\"arguments to this function show\
+      \ up as parameters in GRC\"\"\"\n        gr.sync_block.__init__(\n         \
+      \   self,\n            name='Logger for multi vectors (FFT)',   # will show\
+      \ up in GRC\n            in_sig=[(np.float32,fft_size)]*4,\n            out_sig=None\n\
+      \        )\n        # if an attribute with the same name as a parameter is found,\n\
+      \        # a callback is registered (properties work, too).\n        self.fft_size\
+      \ = fft_size\n        self.f1 = f1\n        self.f2 = f2\n        self.f3 =\
+      \ f3\n        self.f4 = f4\n        self.freqs = [self.f1,self.f2,self.f3,self.f4]\n\
       \        self.logtime = logtime\n        self.decln = decln\n        self.prefix\
       \ = prefix\n        self.longitude = longitude\n        self.then = time.time()\n\
       \        self.mdarrays = [[]] * len(self.freqs)\n        self.irate = irate\n\
-      \        self.avgarrays = []\n        self.avgcount = []\n        self.caltimes\
-      \ = caltimes\n        self.strtimes = self.caltimes.split(\",\")\n        self.calfloats\
-      \ = []\n        if (caltimes != None and caltimes != \"\"):\n            for\
-      \ x in self.strtimes:\n                self.calfloats.append(float(x))  \n \
-      \       self.caldev = caldev\n        self.caldur = caldur\n        self.bbd\
-      \ = None\n        self.calstate = \"IDLE\"\n        self.calthen = time.time()\n\
-      \        self.caltime = time.time()\n        if (self.caldev != None and self.caldev\
-      \ != \"\" and self.caltimes != \"\" and\n            self.caltimes != None and\
-      \ self.caldur > 0):\n            self.bbd = BitBangDevice(self.caldev)\n   \
-      \         self.bbd.direction = 0xFF\n            self.bbd.port = 0x00\n    \
-      \    for i in range(0,len(self.freqs)):\n            self.avgarrays.append(np.zeros(self.fft_size,dtype=np.float32))\n\
+      \        self.bandwidth = bandwidth\n        self.avgarrays = []\n        self.avgcount\
+      \ = []\n        self.caltimes = caltimes\n        self.strtimes = self.caltimes.split(\"\
+      ,\")\n        self.calfloats = []\n        if (caltimes != None and caltimes\
+      \ != \"\"):\n            for x in self.strtimes:\n                self.calfloats.append(float(x))\
+      \  \n        self.caldev = caldev\n        self.caldur = caldur\n        self.fmode\
+      \ = fmode\n        self.bbd = None\n        self.calstate = \"IDLE\"\n     \
+      \   self.calthen = time.time()\n        self.caltime = time.time()\n       \
+      \ if (self.caldev != None and self.caldev != \"\" and self.caltimes != \"\"\
+      \ and\n            self.caltimes != None and self.caldur > 0):\n           \
+      \ self.bbd = BitBangDevice(self.caldev)\n            self.bbd.direction = 0xFF\n\
+      \            self.bbd.port = 0x00\n        for i in range(0,len(self.freqs)):\n\
+      \            self.avgarrays.append(np.zeros(self.fft_size,dtype=np.float32))\n\
       \            self.avgcount.append(0)\n\n    def work(self, input_items, output_items):\n\
       \        \n        #\n        # Check if it's time to fire the calibrator\n\
       \        #\n        #\n        # Make sure we have a calibrator to fire\n  \
@@ -653,39 +664,45 @@ blocks:
       \                #\n                # Turn it into a first-class Numpy 2D array\n\
       \                #\n                a = np.array(self.mdarrays[x])\n       \
       \         \n                #\n                # Compute median on transposed\
-      \ axes\n                #\n                median = np.median(a.transpose(),axis=1)\n\
-      \                self.avgarrays[x] = np.add(self.avgarrays[x], median)\n   \
-      \             self.avgcount[x] += 1\n                \n                #\n \
-      \               # \"Zero out\" the corresponding mdarray\n                #\n\
-      \                self.mdarrays[x] = []\n        #\n        # Time to average\
-      \ and log\n        #\n        if ((time.time() - self.then) > self.logtime):\n\
-      \            self.then = time.time()\n            for x in range(len(self.freqs)):\n\
-      \                #\n                # If this avgarray has anything in it\n\
-      \                #\n                if (self.avgcount[x] > 0):\n           \
-      \         #\n                    # Compute average\n                    #\n\
-      \                    av = np.divide(self.avgarrays[x], self.avgcount[x])\n \
-      \                   \n                    #\n                    # Zero-out\n\
-      \                    #\n                    self.avgarrays[x] = np.multiply(self.avgarrays[x],\
-      \ 0.0)\n                    self.avgcount[x] = 0\n                    \n   \
-      \                 #\n                    # Get timestamps in both UTC and LMST\n\
-      \                    #\n                    ltp = time.gmtime()\n          \
-      \          ds = \"%04d%02d%02d\" % (ltp.tm_year, ltp.tm_mon, ltp.tm_mday)\n\
-      \                    fname = self.prefix+\"%04d-%d-\" % (int(self.freqs[x]/1.e06),\
-      \ x)\n                    fname += ds\n                    fname += \".csv\"\
-      \n                    fp = open(fname, \"a\")\n                    #\n     \
-      \               # Write headers\n                    #\n                   \
-      \ curt = cur_sidereal(self.longitude)\n                    fp.write(\"%02d,%02d,%02d\"\
-      \ % (ltp.tm_hour, ltp.tm_min, ltp.tm_sec))\n                    fp.write(\"\
-      ,%s,\" % curt)\n                    fp.write(\"%.2f,\" % self.decln)\n     \
-      \               fp.write(\"%.5f,\" % (self.freqs[x]/1.0e6))\n              \
-      \      fp.write(\"%d,\" % (0 if self.calstate != \"ON\" else 1))\n         \
+      \ axes\n                #\n                if self.fmode == \"median\":\n  \
+      \                  median = np.median(a.transpose(),axis=1)\n              \
+      \  elif self.fmode == \"min\":\n                    median = np.min(a.transpose(),\
+      \ axis=1)\n                elif self.fmode == \"max\":\n                   \
+      \ median = np.max(a.transpose(), axis=1)\n                else:\n          \
+      \          median = np.mean(a.transpose(), axis=1)\n                self.avgarrays[x]\
+      \ = np.add(self.avgarrays[x], median)\n                self.avgcount[x] += 1\n\
+      \                \n                #\n                # \"Zero out\" the corresponding\
+      \ mdarray\n                #\n                self.mdarrays[x] = []\n      \
+      \  #\n        # Time to average and log\n        #\n        if ((time.time()\
+      \ - self.then) > self.logtime):\n            self.then = time.time()\n     \
+      \       for x in range(len(self.freqs)):\n                #\n              \
+      \  # If this avgarray has anything in it\n                #\n              \
+      \  if (self.avgcount[x] > 0):\n                    #\n                    #\
+      \ Compute average\n                    #\n                    av = np.divide(self.avgarrays[x],\
+      \ self.avgcount[x])\n                    \n                    #\n         \
+      \           # Zero-out\n                    #\n                    self.avgarrays[x]\
+      \ = np.multiply(self.avgarrays[x], 0.0)\n                    self.avgcount[x]\
+      \ = 0\n                    \n                    #\n                    # Get\
+      \ timestamps in both UTC and LMST\n                    #\n                 \
+      \   ltp = time.gmtime()\n                    ds = \"%04d%02d%02d\" % (ltp.tm_year,\
+      \ ltp.tm_mon, ltp.tm_mday)\n                    fname = self.prefix+\"%04d-%d-\"\
+      \ % (int(self.freqs[x]/1.e06), x)\n                    fname += ds\n       \
+      \             fname += \".csv\"\n                    fp = open(fname, \"a\"\
+      )\n                    #\n                    # Write headers\n            \
+      \        #\n                    curt = cur_sidereal(self.longitude)\n      \
+      \              fp.write(\"%02d,%02d,%02d\" % (ltp.tm_hour, ltp.tm_min, ltp.tm_sec))\n\
+      \                    fp.write(\",%s,\" % curt)\n                    fp.write(\"\
+      %.2f,\" % self.decln)\n                    fp.write(\"%.5f,\" % (self.freqs[x]/1.0e6))\n\
+      \                    fp.write(\"%d,\" % (0 if self.calstate != \"ON\" else 1))\n\
+      \                    fp.write(\"%d,\" % int(self.bandwidth/1e6))\n         \
       \           \n                    #\n                    # Write data values\n\
       \                    #\n                    for v in av:\n                 \
-      \       fp.write(\"%.5e,\" % v)\n                    fp.write(\"\\n\")\n   \
+      \       fp.write(\"%.6e,\" % v)\n                    fp.write(\"\\n\")\n   \
       \                 fp.close()\n                    \n                \n     \
       \         \n        return len(input_items[0])\n"
     affinity: ''
     alias: ''
+    bandwidth: srate
     caldev: caldev
     caldur: caldur
     caltimes: caltimes
@@ -696,6 +713,7 @@ blocks:
     f3: f3
     f4: f4
     fft_size: fft_size
+    fmode: fmode
     irate: irate
     logtime: logtime
     longitude: longitude
@@ -703,14 +721,25 @@ blocks:
     minoutbuf: '0'
     prefix: prefix
   states:
-    _io_cache: ('Logger for multi vectors (FFT)', 'blk', [('fft_size', '2048'), ('f1',
-      '1420405800.0'), ('f2', '1420405800.0'), ('f3', '611000000.0'), ('f4', '1000000000.0'),
-      ('decln', '0.0'), ('longitude', '-76.03'), ('prefix', "'./'"), ('logtime', '10.0'),
-      ('irate', '10'), ('caldev', "''"), ('caltimes', "''"), ('caldur', '0.0')], [('0',
-      'float', 2048), ('1', 'float', 2048), ('2', 'float', 2048), ('3', 'float', 2048)],
-      [], 'Embedded Python Block example - a simple multiply const', ['caldev', 'caldur',
-      'caltimes', 'decln', 'f1', 'f2', 'f3', 'f4', 'fft_size', 'irate', 'logtime',
-      'longitude', 'prefix'])
+    _io_cache: '(''Logger for multi vectors (FFT)'', ''blk'', [(''fft_size'', ''2048''),
+      (''f1'', ''1420405800.0''), (''f2'', ''1420405800.0''), (''f3'', ''611000000.0''),
+      (''f4'', ''1000000000.0''), (''decln'', ''0.0''), (''longitude'', ''-76.03''),
+      (''prefix'', "''./''"), (''logtime'', ''10.0''), (''irate'', ''10''), (''caldev'',
+      "''''"), (''caltimes'', "''''"), (''caldur'', ''0.0''), (''bandwidth'', ''1000000.0''),
+      (''fmode'', "''median''")], [(''0'', ''float'', 2048), (''1'', ''float'', 2048),
+      (''2'', ''float'', 2048), (''3'', ''float'', 2048)], [], "4-channel FFT logger
+      with two layers of filters\n         fft_size - fixed at 2048\n         f1  -
+      channel 1 frequency\n         f2  - channel 2 frequency\n         f3  - channel
+      3 frequency\n         f4  - channel 4 frequency\n         decln   - declination
+      (decimal degrees)\n         longitude - longitude (decimal degrees)\n         prefix
+      - filename prefix for log files\n         logtime  - logging interval, in seconds\n         irate   -
+      internal post-FFT sample-rate (Hz)\n         caldev  - calibration device identifier
+      (for libpyftdi)\n         caltimes  - comma-separated list of LMST times to
+      turn on CAL\n         caldur    - CAL duration, in seconds\n         bandwidth  -
+      input bandwidth, Hz\n         fmode   - filtering mode: ''median'', ''min'',
+      ''max''", [''bandwidth'', ''caldev'', ''caldur'', ''caltimes'', ''decln'', ''f1'',
+      ''f2'', ''f3'', ''f4'', ''fft_size'', ''fmode'', ''irate'', ''logtime'', ''longitude'',
+      ''prefix''])'
     bus_sink: false
     bus_source: false
     bus_structure: null
@@ -799,6 +828,23 @@ blocks:
     bus_source: false
     bus_structure: null
     coordinate: [720, 420.0]
+    rotation: 0
+    state: true
+- name: fmode
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: '"RFI filter mode"'
+    short_id: ''
+    type: str
+    value: '"median"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [816, 1148.0]
     rotation: 0
     state: true
 - name: g1
@@ -1447,7 +1493,7 @@ blocks:
     iq_imbal_enb7: default
     iq_imbal_enb8: default
     iq_imbal_enb9: default
-    lo_export0: 'False'
+    lo_export0: 'True'
     lo_export1: 'False'
     lo_export10: 'False'
     lo_export11: 'False'
@@ -1480,7 +1526,7 @@ blocks:
     lo_export8: 'False'
     lo_export9: 'False'
     lo_source0: internal
-    lo_source1: internal
+    lo_source1: companion
     lo_source10: internal
     lo_source11: internal
     lo_source12: internal
@@ -1557,7 +1603,7 @@ blocks:
     sd_spec5: ''
     sd_spec6: ''
     sd_spec7: ''
-    show_lo_controls: 'False'
+    show_lo_controls: 'True'
     start_time: '-1.0'
     stream_args: ''
     stream_chans: '[]'
