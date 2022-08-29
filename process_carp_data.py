@@ -38,7 +38,7 @@ parser.add_argument("--tmin", type=float, help="Dataset minimum temperature", de
 parser.add_argument("--alpha", type=float, help="Smoothing alpha value", default=0.25)
 parser.add_argument("--reduce", type=int, help="Reduce bandwidth amount", default=0)
 parser.add_argument("--datastart", type=int, help="Data starting column", default=9)
-parser.add_argument("--utc", type=bool, help="Turn on UTC timestamping", action="store_true", default=False)
+parser.add_argument("--utc", help="Turn on UTC timestamping", action="store_true", default=False)
 
 
 args = parser.parse_args()
