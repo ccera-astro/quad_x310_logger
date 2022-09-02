@@ -68,7 +68,7 @@ blocks:
     bus_structure: null
     coordinate: [152, 860.0]
     rotation: 0
-    state: disabled
+    state: enabled
 - name: samp_rate
   id: variable
   parameters:
@@ -245,7 +245,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1800, 816.0]
+    coordinate: [1792, 512.0]
     rotation: 0
     state: true
 - name: blocks_keep_one_in_n_0
@@ -320,78 +320,6 @@ blocks:
     coordinate: [1520, 396.0]
     rotation: 0
     state: true
-- name: blocks_nlog10_ff_0
-  id: blocks_nlog10_ff
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    k: log10_k
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    n: '10'
-    vlen: fft_size
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [1864, 60.0]
-    rotation: 0
-    state: disabled
-- name: blocks_nlog10_ff_0_0
-  id: blocks_nlog10_ff
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    k: log10_k
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    n: '10'
-    vlen: fft_size
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [1864, 172.0]
-    rotation: 0
-    state: disabled
-- name: blocks_nlog10_ff_0_0_0
-  id: blocks_nlog10_ff
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    k: log10_k
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    n: '10'
-    vlen: fft_size
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [1864, 276.0]
-    rotation: 0
-    state: disabled
-- name: blocks_nlog10_ff_0_0_0_0
-  id: blocks_nlog10_ff
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    k: log10_k
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    n: '10'
-    vlen: fft_size
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [1864, 388.0]
-    rotation: 0
-    state: disabled
 - name: blocks_stream_to_vector_0
   id: blocks_stream_to_vector
   parameters:
@@ -762,7 +690,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [2000, 500.0]
+    coordinate: [1944, 196.0]
     rotation: 0
     state: true
 - name: fft_vxx_0
@@ -1028,79 +956,6 @@ blocks:
     coordinate: [840, 940.0]
     rotation: 0
     state: true
-- name: qtgui_vector_sink_f_0
-  id: qtgui_vector_sink_f
-  parameters:
-    affinity: ''
-    alias: ''
-    alpha1: '1.0'
-    alpha10: '1.0'
-    alpha2: '1.0'
-    alpha3: '1.0'
-    alpha4: '1.0'
-    alpha5: '1.0'
-    alpha6: '1.0'
-    alpha7: '1.0'
-    alpha8: '1.0'
-    alpha9: '1.0'
-    autoscale: 'False'
-    average: '1.0'
-    color1: '"blue"'
-    color10: '"dark blue"'
-    color2: '"red"'
-    color3: '"green"'
-    color4: '"black"'
-    color5: '"cyan"'
-    color6: '"magenta"'
-    color7: '"yellow"'
-    color8: '"dark red"'
-    color9: '"dark green"'
-    comment: ''
-    grid: 'True'
-    gui_hint: ''
-    label1: '"%.3fMHz" % (f1 / 1.0e6)'
-    label10: ''
-    label2: '"%.3fMHz" % (f2 / 1.0e6)'
-    label3: '"%.3fMHz" % (f3 / 1.0e6)'
-    label4: '"%.3fMHz" % (f4 / 1.0e6)'
-    label5: ''
-    label6: ''
-    label7: ''
-    label8: ''
-    label9: ''
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    name: '"Spectrum"'
-    nconnections: '4'
-    ref_level: '0'
-    showports: 'False'
-    update_time: '0.10'
-    vlen: fft_size
-    width1: '1'
-    width10: '1'
-    width2: '1'
-    width3: '1'
-    width4: '1'
-    width5: '1'
-    width6: '1'
-    width7: '1'
-    width8: '1'
-    width9: '1'
-    x_axis_label: '"Frequency Offset"'
-    x_start: -samp_rate/2
-    x_step: samp_rate/fft_size
-    x_units: '""'
-    y_axis_label: '"dB"'
-    y_units: '""'
-    ymax: '10'
-    ymin: '-100'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [2216, 156.0]
-    rotation: 0
-    state: disabled
 - name: runtime
   id: parameter
   parameters:
@@ -1660,7 +1515,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [2032, 828.0]
+    coordinate: [2032, 516.0]
     rotation: 0
     state: true
 
@@ -1676,21 +1531,13 @@ connections:
 - [blocks_head_0_0_0_0, '0', blocks_stream_to_vector_0_0_0_0, '0']
 - [blocks_interleave_0, '0', zeromq_pub_sink_0, '0']
 - [blocks_keep_one_in_n_0, '0', blocks_interleave_0, '0']
-- [blocks_keep_one_in_n_0, '0', blocks_nlog10_ff_0, '0']
 - [blocks_keep_one_in_n_0, '0', fft_logger, '0']
 - [blocks_keep_one_in_n_0_0, '0', blocks_interleave_0, '1']
-- [blocks_keep_one_in_n_0_0, '0', blocks_nlog10_ff_0_0, '0']
 - [blocks_keep_one_in_n_0_0, '0', fft_logger, '1']
 - [blocks_keep_one_in_n_0_0_0, '0', blocks_interleave_0, '2']
-- [blocks_keep_one_in_n_0_0_0, '0', blocks_nlog10_ff_0_0_0, '0']
 - [blocks_keep_one_in_n_0_0_0, '0', fft_logger, '2']
 - [blocks_keep_one_in_n_0_0_0_0, '0', blocks_interleave_0, '3']
-- [blocks_keep_one_in_n_0_0_0_0, '0', blocks_nlog10_ff_0_0_0_0, '0']
 - [blocks_keep_one_in_n_0_0_0_0, '0', fft_logger, '3']
-- [blocks_nlog10_ff_0, '0', qtgui_vector_sink_f_0, '0']
-- [blocks_nlog10_ff_0_0, '0', qtgui_vector_sink_f_0, '1']
-- [blocks_nlog10_ff_0_0_0, '0', qtgui_vector_sink_f_0, '2']
-- [blocks_nlog10_ff_0_0_0_0, '0', qtgui_vector_sink_f_0, '3']
 - [blocks_stream_to_vector_0, '0', fft_vxx_0, '0']
 - [blocks_stream_to_vector_0_0, '0', fft_vxx_0_0, '0']
 - [blocks_stream_to_vector_0_0_0, '0', fft_vxx_0_0_0, '0']

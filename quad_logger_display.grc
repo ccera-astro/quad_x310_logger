@@ -174,7 +174,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [152, 276.0]
+    coordinate: [16, 388.0]
     rotation: 0
     state: true
 - name: f2
@@ -191,7 +191,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [296, 276.0]
+    coordinate: [272, 412.0]
     rotation: 0
     state: true
 - name: f3
@@ -208,7 +208,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [440, 276.0]
+    coordinate: [416, 412.0]
     rotation: 0
     state: true
 - name: f4
@@ -225,7 +225,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [584, 276.0]
+    coordinate: [552, 420.0]
     rotation: 0
     state: true
 - name: fft_size
@@ -330,7 +330,7 @@ blocks:
     width8: '1'
     width9: '1'
     x_axis_label: '"Frequency Offset"'
-    x_start: -samp_rate/2
+    x_start: -(samp_rate/2)
     x_step: samp_rate/fft_size
     x_units: '""'
     y_axis_label: '"dB"'
@@ -382,7 +382,7 @@ blocks:
     bus_structure: null
     coordinate: [216, 92.0]
     rotation: 0
-    state: true
+    state: enabled
 
 connections:
 - [blocks_deinterleave_0, '0', blocks_nlog10_ff_0, '0']
