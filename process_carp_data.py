@@ -29,6 +29,7 @@ import numpy as np
 import os
 import sys
 import argparse
+import math
 
 parser = argparse.ArgumentParser(description="Process CARP antenna data")
 
@@ -41,6 +42,7 @@ parser.add_argument("--reduce", type=int, help="Reduce bandwidth amount", defaul
 parser.add_argument("--datastart", type=int, help="Data starting column", default=9)
 parser.add_argument("--utc", help="Turn on UTC timestamping", action="store_true", default=False)
 parser.add_argument("--raw", help="Do not convert to Tant", action="store_true", default=False)
+parser.add_argument("--db", help="Show as dB above min", action="store_true", default=False)
 
 
 args = parser.parse_args()
@@ -169,6 +171,8 @@ for i in range(len(lmstarray)):
         else:
             t = s
         
+        if (args.db == True):
+            t = math.log10(t/minv)*10.0
         #
         # Prime the IIR "pump"
         #
