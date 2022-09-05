@@ -138,6 +138,9 @@ for i in range(len(lmstarray)):
         if (s < minv):
             minv = s
 
+print ("minv %.7f" % minv)
+print ("as temp %.2f" % (minv*(args.tsys+args.tmin)-args.tsys))
+
 #
 # Produce a smoothed output
 #
