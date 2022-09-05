@@ -133,7 +133,7 @@ for f in args.file:
 #
 minv = 99999.99
 for i in range(len(lmstarray)):
-    if (lmstcount[i] > 0):
+    if (lmstcount[i] > 0 and lmstarray[i] > 0):
         s  = lmstarray[i]/lmstcount[i]
         if (s < minv):
             minv = s
