@@ -176,5 +176,5 @@ for i in range(len(lmstarray)):
         
         aval = t*a + b*aval
 
-        print ("%.4f %.6e" % (lmst, aval))
+        print ("%.4f %.2f" % (lmst, aval))
     
