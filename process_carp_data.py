@@ -40,6 +40,7 @@ parser.add_argument("--alpha", type=float, help="Smoothing alpha value", default
 parser.add_argument("--reduce", type=int, help="Reduce bandwidth amount", default=0)
 parser.add_argument("--datastart", type=int, help="Data starting column", default=9)
 parser.add_argument("--utc", help="Turn on UTC timestamping", action="store_true", default=False)
+parser.add_argument("--raw", help="Do not convert to Tant", action="store_true", default=False)
 
 
 args = parser.parse_args()
@@ -138,9 +139,6 @@ for i in range(len(lmstarray)):
         if (s < minv):
             minv = s
 
-#print ("minv %.7f" % minv)
-#print ("as temp %.2f" % (minv*(args.tsys+args.tmin)-args.tsys))
-
 #
 # Produce a smoothed output
 #
@@ -160,13 +158,16 @@ for i in range(len(lmstarray)):
         #
         # Normalize to minv
         #
-        t = s/minv
-        
-        #
-        # Convert into (antenna) temperature, given TSYS and TMIN
-        #
-        t *= (args.tsys+args.tmin)
-        t -= args.tsys
+        if (args.raw == False):
+            t = s/minv
+            
+            #
+            # Convert into (antenna) temperature, given TSYS and TMIN
+            #
+            t *= (args.tsys+args.tmin)
+            t -= args.tsys
+        else:
+            t = s
         
         #
         # Prime the IIR "pump"
