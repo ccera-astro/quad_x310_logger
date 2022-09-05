@@ -6,7 +6,7 @@
 #
 # Each file contains a collection of records:
 #
-# UTH,UTM,UTS,LMH,LMM,LMS,DEC,FREQ,[2048 FFT power values]
+# UTH,UTM,UTS,LMH,LMM,LMS,DEC,FREQ,BW,[2048 FFT power values]
 #
 # UTH - UTC Hour
 # UTM - UTC Minute
@@ -16,6 +16,7 @@
 # LMS - LMST Second
 # DEC - Declination
 # FREQ - Center frequency
+# BW   - Bandwidth
 #
 #
 # We process each of these records to extra a total-power estimate
@@ -144,7 +145,7 @@ aval = -9
 a = args.alpha
 b = 1.0 - a         
 for i in range(len(lmstarray)): 
-    if (lmstcount[i] > 0):
+    if (lmstcount[i] > 0 and lmstarray[i] > 0.0):
         lmst = float(i)*float(args.step)
         lmst /= 3600.0
         
