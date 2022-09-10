@@ -16,8 +16,8 @@
 # LMS - LMST Second
 # DEC - Declination
 # FREQ - Center frequency
-# BW   - Bandwidth
 # CAL - CAL state
+# BW   - Bandwidth
 #
 #
 # We process each of these records to extra a total-power estimate

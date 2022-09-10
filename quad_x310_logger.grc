@@ -556,10 +556,11 @@ blocks:
       \ device identifier (for libpyftdi)\n         caltimes  - comma-separated list\
       \ of LMST times to turn on CAL\n         caldur    - CAL duration, in seconds\n\
       \         bandwidth  - input bandwidth, Hz\n         fmode   - filtering mode:\
-      \ 'median', 'min', 'max'\"\"\"\n\n    def __init__(self, fft_size=2048,f1=1420.4058e6,f2=1420.4058e6,f3=611e6,f4=1000e6,\n\
+      \ 'median', 'min', 'max', \"rfi\"\n         klen - kernel length for rfi mode\
+      \  3 or 5\"\"\"\n\n    def __init__(self, fft_size=2048,f1=1420.4058e6,f2=1420.4058e6,f3=611e6,f4=1000e6,\n\
       \        decln=0.0,longitude=-76.03,prefix=\"./\", logtime=10.0, irate=10, caldev=\"\
-      \", caltimes=\"\", caldur=0.0,\n        bandwidth=1e6, fmode=\"median\"):  #\
-      \ only default arguments here\n        \"\"\"arguments to this function show\
+      \", caltimes=\"\", caldur=0.0,\n        bandwidth=1e6, fmode=\"median\", klen=3):\
+      \  # only default arguments here\n        \"\"\"arguments to this function show\
       \ up as parameters in GRC\"\"\"\n        gr.sync_block.__init__(\n         \
       \   self,\n            name='Logger for multi vectors (FFT)',   # will show\
       \ up in GRC\n            in_sig=[(np.float32,fft_size)]*4,\n            out_sig=None\n\
@@ -575,12 +576,12 @@ blocks:
       ,\")\n        self.calfloats = []\n        if (caltimes != None and caltimes\
       \ != \"\"):\n            for x in self.strtimes:\n                self.calfloats.append(float(x))\
       \  \n        self.caldev = caldev\n        self.caldur = caldur\n        self.fmode\
-      \ = fmode\n        self.bbd = None\n        self.calstate = \"IDLE\"\n     \
-      \   self.calthen = time.time()\n        self.caltime = time.time()\n       \
-      \ if (self.caldev != None and self.caldev != \"\" and self.caltimes != \"\"\
-      \ and\n            self.caltimes != None and self.caldur > 0):\n           \
-      \ self.bbd = BitBangDevice(self.caldev)\n            self.bbd.direction = 0xFF\n\
-      \            self.bbd.port = 0x00\n        for i in range(0,len(self.freqs)):\n\
+      \ = fmode\n        self.klen = klen\n        self.bbd = None\n        self.calstate\
+      \ = \"IDLE\"\n        self.calthen = time.time()\n        self.caltime = time.time()\n\
+      \        if (self.caldev != None and self.caldev != \"\" and self.caltimes !=\
+      \ \"\" and\n            self.caltimes != None and self.caldur > 0):\n      \
+      \      self.bbd = BitBangDevice(self.caldev)\n            self.bbd.direction\
+      \ = 0xFF\n            self.bbd.port = 0x00\n        for i in range(0,len(self.freqs)):\n\
       \            self.avgarrays.append(np.zeros(self.fft_size,dtype=np.float32))\n\
       \            self.avgcount.append(0)\n\n    def work(self, input_items, output_items):\n\
       \        \n        #\n        # Check if it's time to fire the calibrator\n\
@@ -611,27 +612,33 @@ blocks:
       \                #\n                # Turn it into a first-class Numpy 2D array\n\
       \                #\n                a = np.array(self.mdarrays[x])\n       \
       \         \n                #\n                # Compute median or min or max\
-      \ on transposed axes\n                #\n                if self.fmode == \"\
-      median\":\n                    median = np.median(a.transpose(),axis=1)\n  \
-      \              elif self.fmode == \"min\":\n                    median = np.min(a.transpose(),\
-      \ axis=1)\n                elif self.fmode == \"max\":\n                   \
-      \ median = np.max(a.transpose(), axis=1)\n                elif self.fmode ==\
-      \ \"mean\":\n                    median = np.mean(a.transpose(), axis=1)\n \
-      \               #\n                # This mode is currently too expensive to\
-      \ run!!\n                #\n                elif self.fmode == \"rfi\":\n  \
-      \                  a = scipy.signal.medfilt2d(a,kernel_size=5)\n           \
-      \         median = np.mean(a.transpose(), axis=1)\n                        \n\
-      \                self.avgarrays[x] = np.add(self.avgarrays[x], median)\n   \
-      \             self.avgcount[x] += 1\n                \n                #\n \
-      \               # \"Zero out\" the corresponding mdarray\n                #\n\
-      \                self.mdarrays[x] = []\n        #\n        # Time to average\
-      \ and log\n        #\n        if ((time.time() - self.then) > self.logtime):\n\
-      \            self.then = time.time()\n            for x in range(len(self.freqs)):\n\
-      \                #\n                # If this avgarray has anything in it\n\
-      \                #\n                if (self.avgcount[x] > 0):\n           \
-      \         #\n                    # Compute average\n                    #\n\
-      \                    av = np.divide(self.avgarrays[x], self.avgcount[x])\n \
-      \                   \n                    #\n                    # Zero-out\n\
+      \ on transposed axes\n                #\n\n                #\n             \
+      \   # 1D median\n                #\n                if self.fmode == \"median\"\
+      :\n                    median = np.median(a.transpose(),axis=1)\n          \
+      \      \n                #\n                # Just he minimum\n            \
+      \    #\n                elif self.fmode == \"min\":\n                    median\
+      \ = np.min(a.transpose(), axis=1)\n                \n                #\n   \
+      \             # or the max\n                #\n                elif self.fmode\
+      \ == \"max\":\n                    median = np.max(a.transpose(), axis=1)\n\
+      \                \n                #\n                # or the mean\n      \
+      \          #\n                elif self.fmode == \"mean\":\n               \
+      \     median = np.mean(a.transpose(), axis=1)\n                #\n         \
+      \       # Perform a 2D median filter on the FFT data\n                #\n  \
+      \              # This is often used in de-speckling images\n               \
+      \ # Might work here, also\n                #\n                elif self.fmode\
+      \ == \"rfi\":\n                    a = scipy.signal.medfilt2d(a,kernel_size=self.klen)\n\
+      \                    median = np.mean(a.transpose(), axis=1)\n             \
+      \           \n                self.avgarrays[x] = np.add(self.avgarrays[x],\
+      \ median)\n                self.avgcount[x] += 1\n                \n       \
+      \         #\n                # \"Zero out\" the corresponding mdarray\n    \
+      \            #\n                self.mdarrays[x] = []\n        #\n        #\
+      \ Time to average and log\n        #\n        if ((time.time() - self.then)\
+      \ > self.logtime):\n            self.then = time.time()\n            for x in\
+      \ range(len(self.freqs)):\n                #\n                # If this avgarray\
+      \ has anything in it\n                #\n                if (self.avgcount[x]\
+      \ > 0):\n                    #\n                    # Compute average\n    \
+      \                #\n                    av = np.divide(self.avgarrays[x], self.avgcount[x])\n\
+      \                    \n                    #\n                    # Zero-out\n\
       \                    #\n                    self.avgarrays[x] = np.multiply(self.avgarrays[x],\
       \ 0.0)\n                    self.avgcount[x] = 0\n                    \n   \
       \                 #\n                    # Get timestamps in both UTC and LMST\n\
@@ -669,6 +676,7 @@ blocks:
     fft_size: fft_size
     fmode: fmode
     irate: irate
+    klen: klen
     logtime: logtime
     longitude: longitude
     maxoutbuf: '0'
@@ -680,9 +688,9 @@ blocks:
       (''f4'', ''1000000000.0''), (''decln'', ''0.0''), (''longitude'', ''-76.03''),
       (''prefix'', "''./''"), (''logtime'', ''10.0''), (''irate'', ''10''), (''caldev'',
       "''''"), (''caltimes'', "''''"), (''caldur'', ''0.0''), (''bandwidth'', ''1000000.0''),
-      (''fmode'', "''median''")], [(''0'', ''float'', 2048), (''1'', ''float'', 2048),
-      (''2'', ''float'', 2048), (''3'', ''float'', 2048)], [], "4-channel FFT logger
-      with two layers of filters\n         fft_size - fixed at 2048\n         f1  -
+      (''fmode'', "''median''"), (''klen'', ''3'')], [(''0'', ''float'', 2048), (''1'',
+      ''float'', 2048), (''2'', ''float'', 2048), (''3'', ''float'', 2048)], [], ''4-channel
+      FFT logger with two layers of filters\n         fft_size - fixed at 2048\n         f1  -
       channel 1 frequency\n         f2  - channel 2 frequency\n         f3  - channel
       3 frequency\n         f4  - channel 4 frequency\n         decln   - declination
       (decimal degrees)\n         longitude - longitude (decimal degrees)\n         prefix
@@ -690,10 +698,10 @@ blocks:
       internal post-FFT sample-rate (Hz)\n         caldev  - calibration device identifier
       (for libpyftdi)\n         caltimes  - comma-separated list of LMST times to
       turn on CAL\n         caldur    - CAL duration, in seconds\n         bandwidth  -
-      input bandwidth, Hz\n         fmode   - filtering mode: ''median'', ''min'',
-      ''max''", [''bandwidth'', ''caldev'', ''caldur'', ''caltimes'', ''decln'', ''f1'',
-      ''f2'', ''f3'', ''f4'', ''fft_size'', ''fmode'', ''irate'', ''logtime'', ''longitude'',
-      ''prefix''])'
+      input bandwidth, Hz\n         fmode   - filtering mode: \''median\'', \''min\'',
+      \''max\'', "rfi"\n         klen - kernel length for rfi mode  3 or 5'', [''bandwidth'',
+      ''caldev'', ''caldur'', ''caltimes'', ''decln'', ''f1'', ''f2'', ''f3'', ''f4'',
+      ''fft_size'', ''fmode'', ''irate'', ''klen'', ''logtime'', ''longitude'', ''prefix''])'
     bus_sink: false
     bus_source: false
     bus_structure: null
@@ -910,6 +918,23 @@ blocks:
     bus_source: false
     bus_structure: null
     coordinate: [832, 820.0]
+    rotation: 0
+    state: true
+- name: klen
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: '"Kernel Len for ''rfi'' mode"'
+    short_id: ''
+    type: intx
+    value: '3'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [656, 1148.0]
     rotation: 0
     state: true
 - name: logtime
