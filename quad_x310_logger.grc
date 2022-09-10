@@ -536,9 +536,9 @@ blocks:
       \ of your block. The arguments to __init__  will\nbe the parameters. All of\
       \ them are required to have default values!\n\"\"\"\n\nimport numpy as np\n\
       from gnuradio import gr\nimport time\nimport ephem\nfrom pylibftdi import BitBangDevice\n\
-      import scipy\n\n# Given longitude(decimal degrees as a float)\n#\n# Return the\
-      \ current sidereal time as a string with\n#  \",\" separated tokens\n#\ndef\
-      \ cur_sidereal(longitude):\n    longstr = \"%02d\" % int(longitude)\n    longstr\
+      import scipy.signal\n\n# Given longitude(decimal degrees as a float)\n#\n# Return\
+      \ the current sidereal time as a string with\n#  \",\" separated tokens\n#\n\
+      def cur_sidereal(longitude):\n    longstr = \"%02d\" % int(longitude)\n    longstr\
       \ = longstr + \":\"\n    longitude = abs(longitude)\n    frac = longitude -\
       \ int(longitude)\n    frac *= 60\n    mins = int(frac)\n    longstr += \"%02d\"\
       \ % mins\n    longstr += \":00\"\n    x = ephem.Observer()\n    x.date = ephem.now()\n\
@@ -619,11 +619,11 @@ blocks:
       \ \"mean\":\n                    median = np.mean(a.transpose(), axis=1)\n \
       \               #\n                # This mode is currently too expensive to\
       \ run!!\n                #\n                elif self.fmode == \"rfi\":\n  \
-      \                  a = scipy.signal.medifilt2d(a,kernel_size=3)\n          \
-      \          median = np.mean(a.transpose(), axis=1)\n                       \
-      \ \n                self.avgarrays[x] = np.add(self.avgarrays[x], median)\n\
-      \                self.avgcount[x] += 1\n                \n                #\n\
-      \                # \"Zero out\" the corresponding mdarray\n                #\n\
+      \                  a = scipy.signal.medfilt2d(a,kernel_size=3)\n           \
+      \         median = np.mean(a.transpose(), axis=1)\n                        \n\
+      \                self.avgarrays[x] = np.add(self.avgarrays[x], median)\n   \
+      \             self.avgcount[x] += 1\n                \n                #\n \
+      \               # \"Zero out\" the corresponding mdarray\n                #\n\
       \                self.mdarrays[x] = []\n        #\n        # Time to average\
       \ and log\n        #\n        if ((time.time() - self.then) > self.logtime):\n\
       \            self.then = time.time()\n            for x in range(len(self.freqs)):\n\
