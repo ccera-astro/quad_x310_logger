@@ -48,8 +48,8 @@ blocks:
 - name: irate
   id: variable
   parameters:
-    comment: ''
-    value: '10'
+    comment: MUST be multiple of 5, >= 10
+    value: '15'
   states:
     bus_sink: false
     bus_source: false
@@ -619,7 +619,7 @@ blocks:
       \ \"mean\":\n                    median = np.mean(a.transpose(), axis=1)\n \
       \               #\n                # This mode is currently too expensive to\
       \ run!!\n                #\n                elif self.fmode == \"rfi\":\n  \
-      \                  a = scipy.signal.medfilt2d(a,kernel_size=3)\n           \
+      \                  a = scipy.signal.medfilt2d(a,kernel_size=5)\n           \
       \         median = np.mean(a.transpose(), axis=1)\n                        \n\
       \                self.avgarrays[x] = np.add(self.avgarrays[x], median)\n   \
       \             self.avgcount[x] += 1\n                \n                #\n \
@@ -904,7 +904,7 @@ blocks:
     label: '"Integration time, seconds"'
     short_id: ''
     type: eng_float
-    value: '15.0'
+    value: '2.0'
   states:
     bus_sink: false
     bus_source: false
