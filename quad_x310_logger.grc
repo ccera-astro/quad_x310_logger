@@ -536,13 +536,13 @@ blocks:
       \ of your block. The arguments to __init__  will\nbe the parameters. All of\
       \ them are required to have default values!\n\"\"\"\n\nimport numpy as np\n\
       from gnuradio import gr\nimport time\nimport ephem\nfrom pylibftdi import BitBangDevice\n\
-      \n# Given longitude(decimal degrees as a float)\n#\n# Return the current sidereal\
-      \ time as a string with\n#  \",\" separated tokens\n#\ndef cur_sidereal(longitude):\n\
-      \    longstr = \"%02d\" % int(longitude)\n    longstr = longstr + \":\"\n  \
-      \  longitude = abs(longitude)\n    frac = longitude - int(longitude)\n    frac\
-      \ *= 60\n    mins = int(frac)\n    longstr += \"%02d\" % mins\n    longstr +=\
-      \ \":00\"\n    x = ephem.Observer()\n    x.date = ephem.now()\n    x.long =\
-      \ longstr\n    jdate = ephem.julian_date(x)\n    tokens=str(x.sidereal_time()).split(\"\
+      import scipy\n\n# Given longitude(decimal degrees as a float)\n#\n# Return the\
+      \ current sidereal time as a string with\n#  \",\" separated tokens\n#\ndef\
+      \ cur_sidereal(longitude):\n    longstr = \"%02d\" % int(longitude)\n    longstr\
+      \ = longstr + \":\"\n    longitude = abs(longitude)\n    frac = longitude -\
+      \ int(longitude)\n    frac *= 60\n    mins = int(frac)\n    longstr += \"%02d\"\
+      \ % mins\n    longstr += \":00\"\n    x = ephem.Observer()\n    x.date = ephem.now()\n\
+      \    x.long = longstr\n    jdate = ephem.julian_date(x)\n    tokens=str(x.sidereal_time()).split(\"\
       :\")\n    hours=int(tokens[0])\n    minutes=int(tokens[1])\n    seconds=int(float(tokens[2]))\n\
       \    sidt = \"%02d,%02d,%02d\" % (hours, minutes, seconds)\n    return (sidt)\n\
       \n\nclass blk(gr.sync_block):  # other base classes are basic_block, decim_block,\
@@ -617,22 +617,21 @@ blocks:
       \ axis=1)\n                elif self.fmode == \"max\":\n                   \
       \ median = np.max(a.transpose(), axis=1)\n                elif self.fmode ==\
       \ \"mean\":\n                    median = np.mean(a.transpose(), axis=1)\n \
-      \               elif self.fmode == \"rfi\":\n                    a = a.transpose()\n\
-      \                    #\n                    # This will tend to remove any \"\
-      spikes\" on the input\n                    #\n                    for i in range(len(a)):\n\
-      \                        am = np.argmax(a[i])\n                        a[i][am]\
-      \ = np.median(a[i])\n                    median = np.mean(a, axis=1)\n     \
-      \                   \n                self.avgarrays[x] = np.add(self.avgarrays[x],\
-      \ median)\n                self.avgcount[x] += 1\n                \n       \
-      \         #\n                # \"Zero out\" the corresponding mdarray\n    \
-      \            #\n                self.mdarrays[x] = []\n        #\n        #\
-      \ Time to average and log\n        #\n        if ((time.time() - self.then)\
-      \ > self.logtime):\n            self.then = time.time()\n            for x in\
-      \ range(len(self.freqs)):\n                #\n                # If this avgarray\
-      \ has anything in it\n                #\n                if (self.avgcount[x]\
-      \ > 0):\n                    #\n                    # Compute average\n    \
-      \                #\n                    av = np.divide(self.avgarrays[x], self.avgcount[x])\n\
-      \                    \n                    #\n                    # Zero-out\n\
+      \               #\n                # This mode is currently too expensive to\
+      \ run!!\n                #\n                elif self.fmode == \"rfi\":\n  \
+      \                  a = scipy.signal.medifilt2d(a,kernel_size=3)\n          \
+      \          median = np.mean(a.transpose(), axis=1)\n                       \
+      \ \n                self.avgarrays[x] = np.add(self.avgarrays[x], median)\n\
+      \                self.avgcount[x] += 1\n                \n                #\n\
+      \                # \"Zero out\" the corresponding mdarray\n                #\n\
+      \                self.mdarrays[x] = []\n        #\n        # Time to average\
+      \ and log\n        #\n        if ((time.time() - self.then) > self.logtime):\n\
+      \            self.then = time.time()\n            for x in range(len(self.freqs)):\n\
+      \                #\n                # If this avgarray has anything in it\n\
+      \                #\n                if (self.avgcount[x] > 0):\n           \
+      \         #\n                    # Compute average\n                    #\n\
+      \                    av = np.divide(self.avgarrays[x], self.avgcount[x])\n \
+      \                   \n                    #\n                    # Zero-out\n\
       \                    #\n                    self.avgarrays[x] = np.multiply(self.avgarrays[x],\
       \ 0.0)\n                    self.avgcount[x] = 0\n                    \n   \
       \                 #\n                    # Get timestamps in both UTC and LMST\n\
