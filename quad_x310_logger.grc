@@ -610,10 +610,10 @@ blocks:
       \ (len(self.mdarrays[0]) >= self.irate):\n            for x in range(len(self.freqs)):\n\
       \                #\n                # Turn it into a first-class Numpy 2D array\n\
       \                #\n                a = np.array(self.mdarrays[x])\n       \
-      \         \n                #\n                # Compute median on transposed\
-      \ axes\n                #\n                if self.fmode == \"median\":\n  \
-      \                  median = np.median(a.transpose(),axis=1)\n              \
-      \  elif self.fmode == \"min\":\n                    median = np.min(a.transpose(),\
+      \         \n                #\n                # Compute median or min or max\
+      \ on transposed axes\n                #\n                if self.fmode == \"\
+      median\":\n                    median = np.median(a.transpose(),axis=1)\n  \
+      \              elif self.fmode == \"min\":\n                    median = np.min(a.transpose(),\
       \ axis=1)\n                elif self.fmode == \"max\":\n                   \
       \ median = np.max(a.transpose(), axis=1)\n                else:\n          \
       \          median = np.mean(a.transpose(), axis=1)\n                self.avgarrays[x]\
@@ -643,10 +643,12 @@ blocks:
       \                    fp.write(\"%d,\" % (0 if self.calstate != \"ON\" else 1))\n\
       \                    fp.write(\"%d,\" % int(self.bandwidth/1e6))\n         \
       \           \n                    #\n                    # Write data values\n\
-      \                    #\n                    for v in av:\n                 \
-      \       fp.write(\"%.6e,\" % v)\n                    fp.write(\"\\n\")\n   \
-      \                 fp.close()\n                    \n                \n     \
-      \         \n        return len(input_items[0])\n"
+      \                    #\n                    l=len(av)\n                    for\
+      \ v in av:\n                        fp.write(\"%.6e\" % v)\n               \
+      \         l -= 1\n                        if (l > 0):\n                    \
+      \        fp.write(\",\")\n                    fp.write(\"\\n\")\n          \
+      \          fp.close()\n                    \n                \n            \
+      \  \n        return len(input_items[0])\n"
     affinity: ''
     alias: ''
     bandwidth: srate
