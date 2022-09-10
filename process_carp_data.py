@@ -6,7 +6,7 @@
 #
 # Each file contains a collection of records:
 #
-# UTH,UTM,UTS,LMH,LMM,LMS,DEC,FREQ,BW,[2048 FFT power values]
+# UTH,UTM,UTS,LMH,LMM,LMS,DEC,FREQ,BW,CAL,[2048 FFT power values]
 #
 # UTH - UTC Hour
 # UTM - UTC Minute
@@ -17,6 +17,7 @@
 # DEC - Declination
 # FREQ - Center frequency
 # BW   - Bandwidth
+# CAL - CAL state
 #
 #
 # We process each of these records to extra a total-power estimate
@@ -79,11 +80,11 @@ for f in args.file:
         # The rest are the data
         #
         toks = toks[args.datastart:]
-        if (len(toks) != 2049):
+        if (len(toks) < 2048):
             raise ValueError("Input contains incorrect number of tokens")
         
         #
-        # Trim off the trailing null token
+        # Trim off the trailing null token if there is one
         #
         if (toks[-1] == ""):
             toks = toks[:-1]
