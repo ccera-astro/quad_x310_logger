@@ -44,6 +44,10 @@ parser.add_argument("--datastart", type=int, help="Data starting column", defaul
 parser.add_argument("--utc", help="Turn on UTC timestamping", action="store_true", default=False)
 parser.add_argument("--raw", help="Do not convert to Tant", action="store_true", default=False)
 parser.add_argument("--db", help="Show as dB above min", action="store_true", default=False)
+parser.add_argument("--lmst", help="LMST we're interested in", type=float, default=-1.0)
+parser.add_argument("--duration", help="Duration", type=float, default=0.0)
+parser.add_argument("--fftout", help="FFT output file", type=str, default="")
+parser.add_argument("--tpout", help="Total power output file", type=str, default="")
 
 
 args = parser.parse_args()
@@ -56,6 +60,9 @@ args = parser.parse_args()
 #
 lmstarray = [0]*int(86400/args.step)
 lmstcount = [0]*int(86400/args.step)
+
+fftarray = np.zeros(2048,dtype=np.float64)
+fftcount = 0
 
 for f in args.file:
     sys.stderr.write("Processing %s...\n" % f)
@@ -98,22 +105,9 @@ for f in args.file:
         a = np.asarray(toks,dtype=float)
         
         #
-        # Reshape to allow 4-point median filter
-        #
-        a = np.reshape(a,(int(2048/4),4))
-
-        #
-        # This will produce a new array of 4-point median values
-        #
-        # The goal here is to remove "spikes" in the spectrum--likely
-        #   RFI.
-        #
-        m = np.median(a,axis=1)
-        
-        #
         # Total power is the sum of those values
         #
-        s = np.sum(m)
+        s = np.sum(a)
         
         #
         # Determine LMST bin
@@ -125,62 +119,89 @@ for f in args.file:
         lmst += float(htoks[tstart+1])*60.0
         lmst += float(htoks[tstart+2])
         
-        lmst = int(lmst)
-        lmst = int(lmst / args.step)
+        lmsi= int(lmst)
+        lmsi = int(lmst / args.step)
         
-        lmstarray[lmst] += s
-        lmstcount[lmst] += 1
+        almst = args.lmst * 3600.0
+        adur = args.duration * 3600.0
+        if (args.duration > 0.0 and args.lmst >= 0.0):
+            if (lmst >= almst-(adur/2.0) and lmst <= almst+(adur/2.0)):
+                lmstarray[lmsi] += s
+                lmstcount[lmsi] += 1
+                fftarray = np.add(fftarray, a)
+                fftcount += 1
+        else:
+            lmstarray[lmsi] += s
+            lmstcount[lmsi] += 1
+            fftarray = np.add(fftarray, a)
+            fftcount += 1
     fp.close()
 
-#
-# Determine data minimum
-#
-minv = 99999.99
-for i in range(len(lmstarray)):
-    if (lmstcount[i] > 0 and lmstarray[i] > 0):
-        s  = lmstarray[i]/lmstcount[i]
-        if (s < minv):
-            minv = s
+if (args.tpout != "" and args.tpout != None):
+    fp = open(args.tpout, "w")
+    #
+    # Determine data minimum
+    #
+    minv = 99999.99
+    for i in range(len(lmstarray)):
+        if (lmstcount[i] > 0 and lmstarray[i] > 0):
+            s  = lmstarray[i]/lmstcount[i]
+            if (s < minv):
+                minv = s
 
-#
-# Produce a smoothed output
-#
-aval = -9
-a = args.alpha
-b = 1.0 - a         
-for i in range(len(lmstarray)): 
-    if (lmstcount[i] > 0 and lmstarray[i] > 0.0):
-        lmst = float(i)*float(args.step)
-        lmst /= 3600.0
-        
-        #
-        # Compute average
-        #
-        s = lmstarray[i]/lmstcount[i]
-        
-        #
-        # Normalize to minv
-        #
-        if (args.raw == False):
-            t = s/minv
+    #
+    # Produce a smoothed output
+    #
+    aval = -9
+    a = args.alpha
+    b = 1.0 - a         
+    for i in range(len(lmstarray)): 
+        if (lmstcount[i] > 0 and lmstarray[i] > 0.0):
+            lmst = float(i)*float(args.step)
+            lmst /= 3600.0
             
             #
-            # Convert into (antenna) temperature, given TSYS and TMIN
+            # Compute average
             #
-            t *= (args.tsys+args.tmin)
-            t -= args.tsys
-        else:
-            t = s
-        
-        if (args.db == True):
-            t = math.log10(t/minv)*10.0
-        #
-        # Prime the IIR "pump"
-        #
-        if (aval < 0):
-            aval = t
-        
-        aval = t*a + b*aval
+            s = lmstarray[i]/lmstcount[i]
+            
+            #
+            # Normalize to minv
+            #
+            if (args.raw == False):
+                t = s/minv
+                
+                #
+                # Convert into (antenna) temperature, given TSYS and TMIN
+                #
+                t *= (args.tsys+args.tmin)
+                t -= args.tsys
+            else:
+                t = s
+            
+            if (args.db == True):
+                t = math.log10(t/minv)*10.0
+            #
+            # Prime the IIR "pump"
+            #
+            if (aval < 0):
+                aval = t
+            
+            aval = t*a + b*aval
 
-        print ("%.4f %.5f" % (lmst, aval))
+            fp.write("%.4f %.5f\n" % (lmst, aval))
+    
+    fp.close()
+
+if (args.fftout != "" and args.fftout != ""):
+    fftarray = np.divide(fftarray, fftcount)
+    fp = open(args.fftout, "w")
+    freq = float(htoks[7])
+    bw = float(htoks[9])
+    freq -= bw/2.0
+    incr = bw/2048.0
+    for v in fftarray:
+        fp.write("%.5f %.5e\n" % (freq, v))
+        freq += incr
+    
     

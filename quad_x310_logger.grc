@@ -705,7 +705,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1944, 196.0]
+    coordinate: [1984, 148.0]
     rotation: 0
     state: true
 - name: fft_vxx_0
