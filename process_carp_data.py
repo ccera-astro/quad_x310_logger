@@ -49,6 +49,7 @@ parser.add_argument("--lmst", help="LMST we're interested in", type=float, defau
 parser.add_argument("--duration", help="Duration", type=float, default=0.0)
 parser.add_argument("--fftout", help="FFT output file", type=str, default="")
 parser.add_argument("--tpout", help="Total power output file", type=str, default="")
+parser.add_argument("--ctxoffset", help="Sidereal offset for context (minutes)", type=float, default=0.0)
 
 
 args = parser.parse_args()
@@ -64,6 +65,9 @@ lmstcount = [0]*int(86400/args.step)
 
 fftarray = np.zeros(2048,dtype=np.float64)
 fftcount = 0
+
+ctxarray = np.zeros(2048,dtype=np.float64)
+ctxcount = 0
 
 for f in args.file:
     sys.stderr.write("Processing %s...\n" % f)
@@ -131,6 +135,21 @@ for f in args.file:
                 lmstcount[lmsi] += 1
                 fftarray = np.add(fftarray, a)
                 fftcount += 1
+                
+            lower = almst-(args.ctxoffset*60.0)
+            lower -= adur/2.0
+            upper = lower+(adur)
+            if (args.ctxoffset > 0.0 and lmst >= lower and lmst <= upper):
+                ctxarray = np.add(ctxarray, a)
+                ctxcount += 1
+            
+            lower = almst+(args.ctxoffset*60.0)
+            lower += adur/2.0
+            upper = lower+(adur)
+
+            if (args.ctxoffset > 0.0 and lmst >= lower and lmst <= upper):
+                ctxarray = np.add(ctxarray, a)
+                ctxcount += 1
         else:
             lmstarray[lmsi] += s
             lmstcount[lmsi] += 1
@@ -138,6 +157,9 @@ for f in args.file:
             fftcount += 1
     fp.close()
 
+#
+# Process total-power/continuum data
+#
 if (args.tpout != "" and args.tpout != None):
     fp = open(args.tpout, "w")
     #
@@ -194,6 +216,9 @@ if (args.tpout != "" and args.tpout != None):
     
     fp.close()
 
+#
+# Process FFT data
+#
 if (args.fftout != "" and args.fftout != ""):
     if (fftcount <= 0):
         raise ValueError("No spectral data within specified range")
@@ -203,28 +228,38 @@ if (args.fftout != "" and args.fftout != ""):
     #
     fftarray = np.divide(fftarray, fftcount)
     
-    #
-    # Now compute a large-kernel median filter on it, to give a good
-    #  baseline estimate
-    #
-    smooth = scipy.signal.medfilt(fftarray,kernel_size=87)
-    
-    #
-    # Do a little median filtering on the non-smooth version to reduce
-    #  narrow RFI blips a bit
-    #
-    fftarray = scipy.signal.medfilt(fftarray, kernel_size=3)
-    
-    #
-    # Subtract-out the smooth version
-    #
-    fftarray = np.subtract(fftarray, smooth)
-    
-    #
-    # Add a wee bit to make sure we never take the log of <= 0
-    #
-    if (args.db == True):
-        fftarray = np.add(fftarray,1.0e-4)
+    if (ctxcount > 0):
+        pwravg = sum(fftarray)
+        pwravg /= 2048
+        ctxarray = np.divide(ctxarray, ctxcount)
+        ctxarray = np.divide(ctxarray, np.min(ctxarray))
+        fftarray = np.divide(fftarray, np.min(fftarray))
+        fftarray = np.subtract(fftarray,ctxarray)
+        fftarray = np.multiply(fftarray, pwravg)
+    if (ctxcount <= 0):
+        #
+        # Now compute a large-kernel median filter on it, to give a good
+        #  baseline estimate
+        #
+        smooth = scipy.signal.medfilt(fftarray,kernel_size=87)
+        
+        #
+        # Do a little median filtering on the non-smooth version to reduce
+        #  narrow RFI blips a bit
+        #
+        fftarray = scipy.signal.medfilt(fftarray, kernel_size=3)
+        
+        #
+        # Subtract-out the smooth version
+        #
+        fftarray = np.subtract(fftarray, smooth)
+        
+        #
+        # Add a wee bit to make sure we never take the log of <= 0
+        #
+        if (args.db == True):
+            fftarray = np.add(fftarray,1.0e-5)
+            
     
     #
     # Convert to dB scale
