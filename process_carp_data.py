@@ -194,7 +194,13 @@ if (args.tpout != "" and args.tpout != None):
     fp.close()
 
 if (args.fftout != "" and args.fftout != ""):
+    if (fftcount <= 0):
+        raise ValueError("No spectral data within specified range")
     fftarray = np.divide(fftarray, fftcount)
+    if (args.db == True):
+        fftarray = np.log10(fftarray)
+        fftarray = np.multiply(fftarray, 10.0)
+    fftarray = np.subtract(fftarray, np.min(fftarray))
     fp = open(args.fftout, "w")
     freq = float(htoks[7])
     bw = float(htoks[9])
