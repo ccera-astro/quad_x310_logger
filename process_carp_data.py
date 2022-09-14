@@ -197,11 +197,38 @@ if (args.tpout != "" and args.tpout != None):
 if (args.fftout != "" and args.fftout != ""):
     if (fftcount <= 0):
         raise ValueError("No spectral data within specified range")
+    
+    #
+    # Average all the samples we have in fftarray
+    #
     fftarray = np.divide(fftarray, fftcount)
-    smooth = scipy.signal.medfilt(fftarray,kernel_size=77)
-    fftarray = scipy.signal.medfilt(fftarray, kernel_size=5)
+    
+    #
+    # Now compute a large-kernel median filter on it, to give a good
+    #  baseline estimate
+    #
+    smooth = scipy.signal.medfilt(fftarray,kernel_size=87)
+    
+    #
+    # Do a little median filtering on the non-smooth version to reduce
+    #  narrow RFI blips a bit
+    #
+    fftarray = scipy.signal.medfilt(fftarray, kernel_size=3)
+    
+    #
+    # Subtract-out the smooth version
+    #
     fftarray = np.subtract(fftarray, smooth)
-    fftarray = np.add(fftarray,1.0e-3)
+    
+    #
+    # Add a wee bit to make sure we never take the log of <= 0
+    #
+    if (args.db == True):
+        fftarray = np.add(fftarray,1.0e-4)
+    
+    #
+    # Convert to dB scale
+    #
     if (args.db == True):
         fftarray = np.log10(fftarray)
         fftarray = np.multiply(fftarray, 10.0)
