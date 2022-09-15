@@ -315,13 +315,18 @@ if (args.fftout != "" and args.fftout != ""):
         # It has to be fairly large to "smooth over" RFI blips and spectral
         #   humps.
         #
-        smooth = scipy.signal.medfilt(fftarray,kernel_size=87)
+        smooth = scipy.signal.medfilt(fftarray,kernel_size=177)
+        
+        fp = open("baseline.dat", "w")
+        for v in smooth:
+            fp.write("%.5e\n" % v)
+        fp.close()
         
         #
-        # Do a little median filtering on the non-smooth version to reduce
+        # Do a little (small kernel) median filtering on the non-smooth version to reduce
         #  narrow RFI blips a bit
         #
-        fftarray = scipy.signal.medfilt(fftarray, kernel_size=3)
+        fftarray = scipy.signal.medfilt(fftarray, kernel_size=1)
         
         #
         # Subtract-out the smooth version
