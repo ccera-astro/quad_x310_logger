@@ -50,10 +50,14 @@ parser.add_argument("--duration", help="Duration", type=float, default=0.0)
 parser.add_argument("--fftout", help="FFT output file", type=str, default="")
 parser.add_argument("--tpout", help="Total power output file", type=str, default="")
 parser.add_argument("--ctxoffset", help="Sidereal offset for context (minutes)", type=float, default=0.0)
+parser.add_argument("--redshift", help="Compute red-shift relative to this value (MHz)", type=float, default=0.0)
 
 
 args = parser.parse_args()
 
+
+FFTSIZE = 2048
+C = 299792
 
 #
 # We keep things "binned" in LMST order
@@ -63,10 +67,10 @@ args = parser.parse_args()
 lmstarray = [0]*int(86400/args.step)
 lmstcount = [0]*int(86400/args.step)
 
-fftarray = np.zeros(2048,dtype=np.float64)
+fftarray = np.zeros(FFTSIZE,dtype=np.float64)
 fftcount = 0
 
-ctxarray = np.zeros(2048,dtype=np.float64)
+ctxarray = np.zeros(FFTSIZE,dtype=np.float64)
 ctxcount = 0
 
 for f in args.file:
@@ -92,7 +96,7 @@ for f in args.file:
         # The rest are the data
         #
         toks = toks[args.datastart:]
-        if (len(toks) < 2048):
+        if (len(toks) < FFTSIZE):
             raise ValueError("Input contains incorrect number of tokens")
         
         #
@@ -124,18 +128,42 @@ for f in args.file:
         lmst += float(htoks[tstart+1])*60.0
         lmst += float(htoks[tstart+2])
         
+        #
+        # The actual index value
+        # (Which is INT(LMST/stepsize)
+        #
         lmsi= int(lmst)
         lmsi = int(lmst / args.step)
         
+        #
+        # Shortcuts for args.lmst/duration
+        #
         almst = args.lmst * 3600.0
         adur = args.duration * 3600.0
+        
+        #
+        # We only do "time window" processing if both
+        #  duration and lmst are specified on the command line
+        #
         if (args.duration > 0.0 and args.lmst >= 0.0):
+            
+            #
+            # If this data item's LMST is within the "interesting window"
+            #
             if (lmst >= almst-(adur/2.0) and lmst <= almst+(adur/2.0)):
                 lmstarray[lmsi] += s
                 lmstcount[lmsi] += 1
                 fftarray = np.add(fftarray, a)
                 fftcount += 1
-                
+            
+            #
+            # If this data item is within the "surrounding context"
+            #   LMST
+            #
+            
+            #
+            # First the "below"
+            #
             lower = almst-(args.ctxoffset*60.0)
             lower -= adur/2.0
             upper = lower+(adur)
@@ -143,10 +171,16 @@ for f in args.file:
                 ctxarray = np.add(ctxarray, a)
                 ctxcount += 1
             
+            #
+            # Then the "above"
+            #
             lower = almst+(args.ctxoffset*60.0)
             lower += adur/2.0
             upper = lower+(adur)
-
+            
+            #
+            # But only record it if they specified an offset for context
+            #
             if (args.ctxoffset > 0.0 and lmst >= lower and lmst <= upper):
                 ctxarray = np.add(ctxarray, a)
                 ctxcount += 1
@@ -165,9 +199,9 @@ if (args.tpout != "" and args.tpout != None):
     #
     # Determine data minimum
     #
-    minv = 99999.99
+    minv = 9999999.99
     for i in range(len(lmstarray)):
-        if (lmstcount[i] > 0 and lmstarray[i] > 0):
+        if (lmstcount[i] > 0.0 and lmstarray[i] > 0.0):
             s  = lmstarray[i]/lmstcount[i]
             if (s < minv):
                 minv = s
@@ -189,7 +223,8 @@ if (args.tpout != "" and args.tpout != None):
             s = lmstarray[i]/lmstcount[i]
             
             #
-            # Normalize to minv
+            # Normalize to minv, then use this to
+            #  produce a temperature estimate
             #
             if (args.raw == False):
                 t = s/minv
@@ -202,6 +237,9 @@ if (args.tpout != "" and args.tpout != None):
             else:
                 t = s
             
+            #
+            # Convert to dB if requested
+            #
             if (args.db == True):
                 t = math.log10(t/minv)*10.0
             #
@@ -210,6 +248,9 @@ if (args.tpout != "" and args.tpout != None):
             if (aval < 0):
                 aval = t
             
+            #
+            # A single-pole IIR filter
+            #
             aval = t*a + b*aval
 
             fp.write("%.4f %.5f\n" % (lmst, aval))
@@ -228,18 +269,51 @@ if (args.fftout != "" and args.fftout != ""):
     #
     fftarray = np.divide(fftarray, fftcount)
     
+    #
+    # If there was a context specified, process it
+    #
     if (ctxcount > 0):
+        
+        #
+        # Rememebr how much the average (baseline) power is
+        #  because we're going to normalize both the
+        #  observation and the context, and then re-scale
+        #  afterwards.
+        #
         pwravg = sum(fftarray)
-        pwravg /= 2048
+        pwravg /= FFTSIZE
+        
+        #
+        # Determine average of "context" and normalize
+        #
         ctxarray = np.divide(ctxarray, ctxcount)
         ctxarray = np.divide(ctxarray, np.min(ctxarray))
+        
+        #
+        # Normalize the "observation" array
+        #
         fftarray = np.divide(fftarray, np.min(fftarray))
+        
+        #
+        # Subtract out the "context"
+        #
         fftarray = np.subtract(fftarray,ctxarray)
+        
+        #
+        # Re-scale
+        #
         fftarray = np.multiply(fftarray, pwravg)
+    
+    #
+    # Not using "context"--use "self baseline" technique
+    #
     if (ctxcount <= 0):
         #
-        # Now compute a large-kernel median filter on it, to give a good
+        # Compute a large-kernel median filter on observation array, to give a good
         #  baseline estimate
+        #
+        # It has to be fairly large to "smooth over" RFI blips and spectral
+        #   humps.
         #
         smooth = scipy.signal.medfilt(fftarray,kernel_size=87)
         
@@ -260,27 +334,60 @@ if (args.fftout != "" and args.fftout != ""):
         if (args.db == True):
             fftarray = np.add(fftarray,1.0e-5)
             
-    
     #
     # Convert to dB scale
     #
     if (args.db == True):
         fftarray = np.log10(fftarray)
         fftarray = np.multiply(fftarray, 10.0)
-    fftarray = np.subtract(fftarray, np.min(fftarray))
+        
+        #
+        # Subtract-out the minimum
+        #
+        fftarray = np.subtract(fftarray, np.min(fftarray))
+    
+    #
+    # Open the output file
+    #
     fp = open(args.fftout, "w")
+    
+    #
+    # Determine Center frequency and bandwidth from headers
+    #
     freq = float(htoks[7])
     bw = float(htoks[9])
-    freq -= bw/2.0
-    incr = bw/2048.0
+    
+    if args.redshift > 0.0:
+        freq += bw/2.0
+        incr = -(bw/FFTSIZE)
+    else:
+        freq -= bw/2.0
+        incr = bw/FFTSIZE
+        
     a = args.alpha
     b = 1.0 - args.alpha
     smoove = -999.000
+    
+    #
+    # Output the smoothed version
+    #
+    if (args.redshift > 0.0):
+        ls = list(fftarray)
+        ls.reverse()
+        fftarray = np.array(ls)
+    
     for v in fftarray:
+        if (args.redshift > 0.0):
+            rs = (args.redshift-freq)*1.0e6
+            rs /= (args.redshift*1.0e6)
+            rs *= C
         if (smoove < -90):
             smoove = v
         smoove = a*v + smoove*b
-        fp.write("%.5f %.5e\n" % (freq, smoove))
+        if (args.redshift <= 0.0):
+            fp.write("%.5f %.5e\n" % (freq, smoove))
+        else:
+            fp.write("%.3f %.5e\n" % (rs, smoove))
         freq += incr
     
     
