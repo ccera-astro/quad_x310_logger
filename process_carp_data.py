@@ -260,7 +260,7 @@ if (args.tpout != "" and args.tpout != None):
     for v in outbuf:
         values.append(v[1])
     values = np.array(values)
-    values = scipy.signal.medfilt(values, kernel_size=3)
+    values = scipy.signal.medfilt(values, kernel_size=7)
     for t,v in zip(outbuf,values):
         fp.write("%.3f %.5e\n" % (t[0], v))
         
