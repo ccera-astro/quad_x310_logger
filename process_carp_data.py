@@ -258,7 +258,7 @@ if (args.tpout != "" and args.tpout != None):
     
     values = []
     for v in outbuf:
-        values = v[1]
+        values.append(v[1])
     values = np.array(values)
     values = scipy.signal.medfilt(values, kernel_size=3)
     for t,v in zip(outbuf,values):
