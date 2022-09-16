@@ -262,7 +262,7 @@ if (args.tpout != "" and args.tpout != None):
     values = np.array(values)
     values = scipy.signal.medfilt(values, kernel_size=3)
     for t,v in zip(outbuf,values):
-        fp.write("%.3f %.5e\n" % (t, v[1]))
+        fp.write("%.3f %.5e\n" % (t[0], v))
         
         
     fp.close()
