@@ -47,7 +47,7 @@ parser.add_argument("--raw", help="Do not convert to Tant", action="store_true",
 parser.add_argument("--db", help="Show as dB above min", action="store_true", default=False)
 parser.add_argument("--lmst", help="LMST we're interested in", type=float, default=-1.0)
 parser.add_argument("--duration", help="Duration", type=float, default=0.0)
-parser.add_argument("--fftout", help="FFT output file", type=str, default="")
+parser.add_argument("--fftout", help="FFT output files PREFIX", type=str, default="")
 parser.add_argument("--tpout", help="Total power output file", type=str, default="")
 parser.add_argument("--ctxoffset", help="Sidereal offset for context (minutes)", type=float, default=0.0)
 parser.add_argument("--redshift", help="Compute red-shift relative to this value (MHz)", type=float, default=0.0)
@@ -195,7 +195,7 @@ for f in args.file:
 # Process total-power/continuum data
 #
 if (args.tpout != "" and args.tpout != None):
-    fp = open(args.tpout, "w")
+    outbuf = []
     #
     # Determine data minimum
     #
@@ -253,8 +253,18 @@ if (args.tpout != "" and args.tpout != None):
             #
             aval = t*a + b*aval
 
-            fp.write("%.4f %.5f\n" % (lmst, aval))
+            outbuf.append((lmst, aval))
+    fp = open(args.tpout, "w")
     
+    values = []
+    for v in outbuf:
+        values = v[1]
+    values = np.array(values)
+    values = scipy.signal.medfilt(values, kernel_size=3)
+    for t,v in zip(outbuf,values):
+        fp.write("%.3f %.5e\n" % (t, v[1]))
+        
+        
     fp.close()
 
 #
@@ -289,15 +299,31 @@ if (args.fftout != "" and args.fftout != ""):
         ctxarray = np.divide(ctxarray, ctxcount)
         ctxarray = np.divide(ctxarray, np.min(ctxarray))
         
+        fp = open(args.fftout+"-context.dat", "w")
+        for v in ctxarray:
+            fp.write("%.5e\n" % v)
+        fp.close()
+        
+        
         #
         # Normalize the "observation" array
         #
         fftarray = np.divide(fftarray, np.min(fftarray))
         
+        fp = open(args.fftout+"-observation.dat", "w")
+        for v in fftarray:
+            fp.write("%.5e\n" % v)
+        fp.close()
+        
         #
         # Subtract out the "context"
         #
         fftarray = np.subtract(fftarray,ctxarray)
+        
+        fp = open(args.fftout+"-prescale.dat", "w")
+        for v in fftarray:
+            fp.write("%.5e\n" % v)
+        fp.close()
         
         #
         # Re-scale
@@ -317,7 +343,12 @@ if (args.fftout != "" and args.fftout != ""):
         #
         smooth = scipy.signal.medfilt(fftarray,kernel_size=177)
         
-        fp = open("baseline.dat", "w")
+        #
+        # Produce a "baseline" file that shows our self-extracted baseline
+        #
+        # Useful to help understand the end result
+        #
+        fp = open(args.fftout+"-baseline.dat", "w")
         for v in smooth:
             fp.write("%.5e\n" % v)
         fp.close()
@@ -354,7 +385,7 @@ if (args.fftout != "" and args.fftout != ""):
     #
     # Open the output file
     #
-    fp = open(args.fftout, "w")
+    fp = open(args.fftout+"-final.dat", "w")
     
     #
     # Determine Center frequency and bandwidth from headers
