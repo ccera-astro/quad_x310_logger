@@ -46,7 +46,7 @@ parser.add_argument("--utc", help="Turn on UTC timestamping", action="store_true
 parser.add_argument("--raw", help="Do not convert to Tant", action="store_true", default=False)
 parser.add_argument("--db", help="Show as dB above min", action="store_true", default=False)
 parser.add_argument("--lmst", help="LMST we're interested in", type=float, default=-1.0)
-parser.add_argument("--duration", help="Duration", type=float, default=0.0)
+parser.add_argument("--duration", help="Duration (Hours)", type=float, default=0.0)
 parser.add_argument("--fftout", help="FFT output files PREFIX", type=str, default="")
 parser.add_argument("--tpout", help="Total power output file", type=str, default="")
 parser.add_argument("--ctxoffset", help="Sidereal offset for context (minutes)", type=float, default=0.0)
@@ -260,7 +260,7 @@ if (args.tpout != "" and args.tpout != None):
     for v in outbuf:
         values.append(v[1])
     values = np.array(values)
-    values = scipy.signal.medfilt(values, kernel_size=9)
+    values = scipy.signal.medfilt(values, kernel_size=1)
     for t,v in zip(outbuf,values):
         fp.write("%.3f %.5e\n" % (t[0], v))
         
@@ -358,6 +358,11 @@ if (args.fftout != "" and args.fftout != ""):
         #  narrow RFI blips a bit
         #
         fftarray = scipy.signal.medfilt(fftarray, kernel_size=1)
+        
+        fp = open(args.fftout+"-observation.dat", "w")
+        for v in fftarray:
+            fp.write("%.5e\n" % v)
+        fp.close()
         
         #
         # Subtract-out the smooth version
