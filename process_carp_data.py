@@ -32,6 +32,7 @@ import sys
 import argparse
 import math
 import scipy.signal
+import scipy.interpolate
 
 parser = argparse.ArgumentParser(description="Process CARP antenna data")
 
@@ -54,6 +55,7 @@ parser.add_argument("--redshift", help="Compute red-shift relative to this value
 parser.add_argument("--maskcenter", help="Center frequency for masking (MHz)", type=float, default=0.0)
 parser.add_argument("--maskwidth", help="Width for masking (MHz)", type=float, default=0.0)
 parser.add_argument("--klen", help="Kernel length for final TP filter", type=int, default=1)
+parser.add_argument("--spline", help="Run data through cubic spline", action="store_true", default=False)
 
 
 args = parser.parse_args()
@@ -284,6 +286,8 @@ if (args.tpout != "" and args.tpout != None):
         values.append(v[1])
     values = np.array(values)
     values = scipy.signal.medfilt(values, kernel_size=args.klen)
+    if (args.spline):
+        values = scipy.interpolate.CubicSpline(range(0,len(values)),values)
     for t,v in zip(outbuf,values):
         fp.write("%.3f %.5e\n" % (t[0], v))
         
