@@ -121,7 +121,7 @@ for f in args.file:
                 startmask = args.maskcenter-(args.maskwidth/2.0)
                 sndx = (startmask-startf)
                 sndx = int(sndx/binwidth)
-                endx = sdnx + int(args.maskwidth/binwidth)
+                endx = sndx + int(args.maskwidth/binwidth)
         
         #
         # Make into numpy array
