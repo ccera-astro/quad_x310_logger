@@ -75,7 +75,7 @@ fftcount = 0
 ctxarray = np.zeros(FFTSIZE,dtype=np.float64)
 ctxcount = 0
 
-binwidth = 0
+binwidth = -1
 for f in args.file:
     sys.stderr.write("Processing %s...\n" % f)
     
@@ -115,13 +115,15 @@ for f in args.file:
         bw = float(htoks[9])
         
         if (args.maskcenter != 0.0):
-            if (binwidth == 0):
+            if (binwidth < 0):
                 binwidth = bw/FFTSIZE
                 startf = freq-bw/2.0
                 startmask = args.maskcenter-(args.maskwidth/2.0)
                 sndx = (startmask-startf)
                 sndx = int(sndx/binwidth)
                 endx = sndx + int(args.maskwidth/binwidth)
+                print ("mask indices %d %d" % (sndx, endx))
+                
         
         #
         # Make into numpy array
@@ -130,7 +132,7 @@ for f in args.file:
         
         apwr = np.sum(a)/len(a)
         
-        if (binwidth != 0):
+        if (binwidth >= 0):
             for i in range(sndx,endx):
                 a[i] = apwr
         
