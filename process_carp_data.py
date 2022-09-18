@@ -122,7 +122,6 @@ for f in args.file:
                 sndx = (startmask-startf)
                 sndx = int(sndx/binwidth)
                 endx = sndx + int(args.maskwidth/binwidth)
-                print ("mask indices %d %d" % (sndx, endx))
                 
         
         #
@@ -134,7 +133,7 @@ for f in args.file:
         
         if (binwidth >= 0):
             for i in range(sndx,endx):
-                a[i] = apwr
+                a[i] = apwr*0.85
         
         #
         # Total power is the sum of those values
