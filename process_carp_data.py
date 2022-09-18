@@ -53,7 +53,7 @@ parser.add_argument("--ctxoffset", help="Sidereal offset for context (minutes)",
 parser.add_argument("--redshift", help="Compute red-shift relative to this value (MHz)", type=float, default=0.0)
 parser.add_argument("--maskcenter", help="Center frequency for masking (MHz)", type=float, default=0.0)
 parser.add_argument("--maskwidth", help="Width for masking (MHz)", type=float, default=0.0)
-parser.add_argument("--klen", help="Kernel length for final TP filter", type=float, default=1.0)
+parser.add_argument("--klen", help="Kernel length for final TP filter", type=int, default=1)
 
 
 args = parser.parse_args()
