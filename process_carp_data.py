@@ -51,6 +51,8 @@ parser.add_argument("--fftout", help="FFT output files PREFIX", type=str, defaul
 parser.add_argument("--tpout", help="Total power output file", type=str, default="")
 parser.add_argument("--ctxoffset", help="Sidereal offset for context (minutes)", type=float, default=0.0)
 parser.add_argument("--redshift", help="Compute red-shift relative to this value (MHz)", type=float, default=0.0)
+parser.add_argument("--maskcenter", help="Center frequency for masking (MHz)", type=float, default=0.0)
+parser.add_argument("--maskwidth", help="Width for masking (MHz)", type=float, default=0.0)
 
 
 args = parser.parse_args()
@@ -73,6 +75,7 @@ fftcount = 0
 ctxarray = np.zeros(FFTSIZE,dtype=np.float64)
 ctxcount = 0
 
+binwidth = 0
 for f in args.file:
     sys.stderr.write("Processing %s...\n" % f)
     
@@ -108,10 +111,28 @@ for f in args.file:
         if (args.reduce > 0):
             toks = [0]*args.reduce + toks[args.reduce:-args.reduce] + [0]*args.reduce
         
+        freq = float(htoks[7])
+        bw = float(htoks[9])
+        
+        if (args.maskcenter != 0.0):
+            if (binwidth == 0):
+                binwidth = bw/FFTSIZE
+                startf = freq-bw/2.0
+                startmask = args.maskcenter-(args.maskwidth/2.0)
+                sndx = (startmask-startf)
+                sndx = int(sndx/binwidth)
+                endx = sdnx + int(args.maskwidth/binwidth)
+        
         #
         # Make into numpy array
         #
         a = np.asarray(toks,dtype=float)
+        
+        apwr = np.sum(a)/len(a)
+        
+        if (binwidth != 0):
+            for i in range(sndx,endx):
+                a[i] = apwr
         
         #
         # Total power is the sum of those values
