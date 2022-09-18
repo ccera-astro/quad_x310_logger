@@ -129,11 +129,11 @@ for f in args.file:
         #
         a = np.asarray(toks,dtype=float)
         
-        apwr = np.sum(a)/len(a)
-        
         if (binwidth >= 0):
+            apwr = np.sum(a)/len(a)
+            apwr *= 0.80
             for i in range(sndx,endx):
-                a[i] = apwr*0.85
+                a[i] = apwr
         
         #
         # Total power is the sum of those values
