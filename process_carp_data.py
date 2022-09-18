@@ -53,6 +53,7 @@ parser.add_argument("--ctxoffset", help="Sidereal offset for context (minutes)",
 parser.add_argument("--redshift", help="Compute red-shift relative to this value (MHz)", type=float, default=0.0)
 parser.add_argument("--maskcenter", help="Center frequency for masking (MHz)", type=float, default=0.0)
 parser.add_argument("--maskwidth", help="Width for masking (MHz)", type=float, default=0.0)
+parser.add_argument("--klen", help="Kernel length for final TP filter", type=float, default=1.0)
 
 
 args = parser.parse_args()
@@ -282,7 +283,7 @@ if (args.tpout != "" and args.tpout != None):
     for v in outbuf:
         values.append(v[1])
     values = np.array(values)
-    values = scipy.signal.medfilt(values, kernel_size=1)
+    values = scipy.signal.medfilt(values, kernel_size=args.klen)
     for t,v in zip(outbuf,values):
         fp.write("%.3f %.5e\n" % (t[0], v))
         
