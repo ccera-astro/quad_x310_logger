@@ -169,6 +169,8 @@ for f in args.file:
         # (Which is INT(LMST/stepsize)
         #
         lmsi = math.ceil(lmst / args.step)
+        if lmsi >= len(lmstarray):
+            lmsi -= 1
 
         #
         # We only do "time window" processing if both
