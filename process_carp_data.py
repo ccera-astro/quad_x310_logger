@@ -86,6 +86,7 @@ binwidth = -1
 almst = args.lmst * 3600.0
 adur = args.duration * 3600.0
 
+recnum = 0
 for f in args.file:
     sys.stderr.write("Processing %s...\n" % f)
     
@@ -95,6 +96,7 @@ for f in args.file:
     #
     while True:
         l = fp.readline()
+        recnum += 1
         if (l == ""):
             break
         l = l.replace("\n", "")
@@ -168,7 +170,10 @@ for f in args.file:
         # The actual index value
         # (Which is INT(LMST/stepsize)
         #
-        lmsi = math.ceil(lmst / args.step)
+        if ((recnum % 2 ) == 0):
+            lmsi = math.ceil(lmst / args.step)
+        else:
+            lmsi = math.floor(lmst / args.step)
         if lmsi >= len(lmstarray):
             lmsi = len(lmstarray)-1
 
