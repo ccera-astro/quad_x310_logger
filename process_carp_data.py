@@ -243,7 +243,7 @@ if (args.tpout != "" and args.tpout != None):
     outcounts = [0]*int(DAY/args.step)
     outvalues = [0]*int(DAY/args.step)   
     for ndx in range(0,len(narrays)):
-        for ndx in range(0,len(narrays[ndx])):
+        for indx in range(0,len(narrays[ndx])):
             outcounts[indx] += 1
             outvalues[indx] += narrays[ndx][indx]
 
