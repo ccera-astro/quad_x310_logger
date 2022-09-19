@@ -170,7 +170,7 @@ for f in args.file:
         #
         lmsi = math.ceil(lmst / args.step)
         if lmsi >= len(lmstarray):
-            lmsi -= 1
+            lmsi = len(lmstarray)-1
 
         #
         # We only do "time window" processing if both
