@@ -70,7 +70,7 @@ DAY = 86400
 # With 86400/args.step bins per sidereal day
 #
 lmstarray = [0]*int(DAY/args.step)
-lmstcount = [0]*int(DAY/args.step)
+lmstcount = [1]*int(DAY/args.step)
 
 fftarray = np.zeros(FFTSIZE,dtype=np.float64)
 fftcount = 0
@@ -79,6 +79,13 @@ ctxarray = np.zeros(FFTSIZE,dtype=np.float64)
 ctxcount = 0
 
 binwidth = -1
+
+#
+# Shortcuts for args.lmst/duration
+#
+almst = args.lmst * 3600.0
+adur = args.duration * 3600.0
+
 for f in args.file:
     sys.stderr.write("Processing %s...\n" % f)
     
@@ -132,6 +139,10 @@ for f in args.file:
         #
         a = np.asarray(toks,dtype=float)
         
+        #
+        # Because that implies masking...
+        # Apply the mask
+        #
         if (binwidth >= 0):
             apwr = np.sum(a)/len(a)
             apwr *= 0.80
@@ -159,13 +170,7 @@ for f in args.file:
         #
         lmsi= int(lmst)
         lmsi = int(lmst / args.step)
-        
-        #
-        # Shortcuts for args.lmst/duration
-        #
-        almst = args.lmst * 3600.0
-        adur = args.duration * 3600.0
-        
+
         #
         # We only do "time window" processing if both
         #  duration and lmst are specified on the command line
@@ -224,6 +229,8 @@ if (args.tpout != "" and args.tpout != None):
     #
     outvalues = lmstarray
     outcounts = lmstcount
+    outvalues = np.divide(outvalues,outcounts)
+    outcounts = np.subtract(outcounts, 1)
     
     #
     # Determine minv
@@ -231,8 +238,7 @@ if (args.tpout != "" and args.tpout != None):
     minv = 999999.99
     for ndx in range(len(outvalues)):
         if (outcounts[ndx] > 0):
-            v = outvalues[ndx]/outcounts[ndx]
-            outvalues[ndx] = v
+            v = outvalues[ndx]
             if (v < minv):
                 minv = v
     #
