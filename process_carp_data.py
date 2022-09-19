@@ -229,8 +229,10 @@ if (args.tpout != "" and args.tpout != None):
     # Determine minv
     #
     minv = 999999.99
-    for v in outvalues:
-        if (v > 0.0):
+    for ndx in range(len(outvalues)):
+        if (outcounts[ndx] > 0):
+            v = outvalues[ndx]/outcounts[ndx]
+            outvalues[ndx] = v
             if (v < minv):
                 minv = v
     #
@@ -244,10 +246,7 @@ if (args.tpout != "" and args.tpout != None):
             lmst = float(i)*float(args.step)
             lmst /= 3600.0
             
-            #
-            # Compute average
-            #
-            s = outvalues[i]/outcounts[i]
+            s = outvalues[i]
             
             #
             # Normalize to minv, then use this to
