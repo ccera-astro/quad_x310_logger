@@ -55,7 +55,6 @@ parser.add_argument("--redshift", help="Compute red-shift relative to this value
 parser.add_argument("--maskcenter", help="Center frequency for masking (MHz)", type=float, default=0.0)
 parser.add_argument("--maskwidth", help="Width for masking (MHz)", type=float, default=0.0)
 parser.add_argument("--klen", help="Kernel length for final TP filter", type=int, default=1)
-parser.add_argument("--spline", help="Run data through cubic spline", action="store_true", default=False)
 
 
 args = parser.parse_args()
@@ -63,14 +62,16 @@ args = parser.parse_args()
 
 FFTSIZE = 2048
 C = 299792
+DAY = 86400
 
 #
 # We keep things "binned" in LMST order
 #
 # With 86400/args.step bins per sidereal day
 #
-lmstarray = [0]*int(86400/args.step)
-lmstcount = [0]*int(86400/args.step)
+lmstarrays = []
+lmstcounts = []
+fndx = 0
 
 fftarray = np.zeros(FFTSIZE,dtype=np.float64)
 fftcount = 0
@@ -86,6 +87,8 @@ for f in args.file:
     #
     # For each line in the input file
     #
+    lmstarrays.append([0.0]*int(DAY/args.step))
+    lmstcounts.append([0]*int(DAY/args.step))
     while True:
         l = fp.readline()
         if (l == ""):
@@ -176,8 +179,8 @@ for f in args.file:
             # If this data item's LMST is within the "interesting window"
             #
             if (lmst >= almst-(adur/2.0) and lmst <= almst+(adur/2.0)):
-                lmstarray[lmsi] += s
-                lmstcount[lmsi] += 1
+                lmstarrays[fndx][lmsi] += s
+                lmstcounts[fndx][lmsi] += 1
                 fftarray = np.add(fftarray, a)
                 fftcount += 1
             
@@ -210,26 +213,39 @@ for f in args.file:
                 ctxarray = np.add(ctxarray, a)
                 ctxcount += 1
         else:
-            lmstarray[lmsi] += s
-            lmstcount[lmsi] += 1
+            lmstarrays[fndx][lmsi] += s
+            lmstcounts[fndx][lmsi] += 1
             fftarray = np.add(fftarray, a)
             fftcount += 1
     fp.close()
-
-#
-# Process total-power/continuum data
-#
+    fndx += 1
+         
 if (args.tpout != "" and args.tpout != None):
     outbuf = []
+    narrays = []
+    
     #
-    # Determine data minimum
+    # Process total-power/continuum data
     #
-    minv = 9999999.99
-    for i in range(len(lmstarray)):
-        if (lmstcount[i] > 0.0 and lmstarray[i] > 0.0):
-            s  = lmstarray[i]/lmstcount[i]
-            if (s < minv):
-                minv = s
+    
+    #
+    # For each of the collected inputs, normalize the inputs
+    #
+    for ndx in range(0,len(lmstarrays)):
+        normalarray = []
+        for indx in range(0,len(lmstarrays[ndx])):
+            if (lmstcounts[ndx][indx] > 0 and lmstarrays[ndx][indx] > 0.0):
+                normalarray.append(lmstarrays[ndx][indx]/lmstcounts[ndx][indx])
+        normalarray = np.array(normalarray)
+        normalarray = np.divide(normalarray,min(normalarray))
+        narrays.append(normalarray)
+    
+    outcounts = [0]*int(DAY/args.step)
+    outvalues = [0]*int(DAY/args.step)   
+    for ndx in range(0,len(narrays)):
+        for ndx in range(0,len(narrays[ndx])):
+            outcounts[indx] += 1
+            outvalues[indx] += narrays[ndx][indx]
 
     #
     # Produce a smoothed output
@@ -237,23 +253,22 @@ if (args.tpout != "" and args.tpout != None):
     aval = -9
     a = args.alpha
     b = 1.0 - a         
-    for i in range(len(lmstarray)): 
-        if (lmstcount[i] > 0 and lmstarray[i] > 0.0):
+    for i in range(len(outvalues)): 
+        if outcounts[i] > 0 and outvalues[i] > 0.0:
             lmst = float(i)*float(args.step)
             lmst /= 3600.0
             
             #
             # Compute average
             #
-            s = lmstarray[i]/lmstcount[i]
+            s = outvalues[i]/outcounts[i]
             
             #
             # Normalize to minv, then use this to
             #  produce a temperature estimate
             #
             if (args.raw == False):
-                t = s/minv
-                
+                t = s
                 #
                 # Convert into (antenna) temperature, given TSYS and TMIN
                 #
@@ -286,8 +301,6 @@ if (args.tpout != "" and args.tpout != None):
         values.append(v[1])
     values = np.array(values)
     values = scipy.signal.medfilt(values, kernel_size=args.klen)
-    if (args.spline):
-        values = scipy.interpolate.CubicSpline(range(0,len(values)),values)
     for t,v in zip(outbuf,values):
         fp.write("%.3f %.5e\n" % (t[0], v))
         
