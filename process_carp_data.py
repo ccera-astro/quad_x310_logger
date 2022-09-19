@@ -237,16 +237,18 @@ if (args.tpout != "" and args.tpout != None):
             if (lmstcounts[ndx][indx] > 0 and lmstarrays[ndx][indx] > 0.0):
                 normalarray.append(lmstarrays[ndx][indx]/lmstcounts[ndx][indx])
         normalarray = np.array(normalarray)
-        normalarray = np.divide(normalarray,min(normalarray))
-        narrays.append(normalarray)
-    
-    outcounts = [0]*int(DAY/args.step)
-    outvalues = [0]*int(DAY/args.step)   
-    for ndx in range(0,len(narrays)):
-        for indx in range(0,len(narrays[ndx])):
-            outcounts[indx] += 1
-            outvalues[indx] += narrays[ndx][indx]
+        mv = min(normalarray)
+        lmstarrays[ndx] = np.divide(lmstarrays[ndx],mv)
 
+    outcounts = [0]*int(DAY/args.step)
+    outvalues = [0.0]*int(DAY/args.step)
+    
+    for v in lmstarrays:
+        outvalues = np.add(outvalues, v)
+        outcounts = np.add(outcounts, 1)
+    
+    outvalues = np.divide(outvalues, outcounts)
+    
     #
     # Produce a smoothed output
     #
