@@ -171,7 +171,7 @@ for f in args.file:
         # The actual index value
         # (Which is INT(LMST/stepsize)
         #
-        if ((random.randint(0,65536) % 2 ) == 0):
+        if ((recnum % 2 ) == 0):
             lmsi = math.ceil(lmst / args.step)
         else:
             lmsi = math.floor(lmst / args.step)
