@@ -211,7 +211,7 @@ for f in args.file:
                 ctxcount += 1
         else:
             lmstarray[lmsi] += s
-            lmstcount[fndx][lmsi] += 1
+            lmstcount[lmsi] += 1
             fftarray = np.add(fftarray, a)
             fftcount += 1
     fp.close()
