@@ -245,7 +245,9 @@ if (args.tpout != "" and args.tpout != None):
     
     for v in lmstarrays:
         outvalues = np.add(outvalues, v)
-        outcounts = np.add(outcounts, 1)
+        for ndx in range(0,len(outcounts)):
+            if (v[ndx] > 0.0):
+                outcounts[ndx] += 1
     
     outvalues = np.divide(outvalues, outcounts)
     
