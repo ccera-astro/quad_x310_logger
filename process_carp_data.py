@@ -235,6 +235,7 @@ if (args.tpout != "" and args.tpout != None):
         normalarray = []
         for indx in range(0,len(lmstarrays[ndx])):
             if (lmstcounts[ndx][indx] > 0 and lmstarrays[ndx][indx] > 0.0):
+                lmstarrays[ndx][indx] /= lmstcounts[ndx][indx]
                 normalarray.append(lmstarrays[ndx][indx])
         normalarray = np.array(normalarray)
         mv = min(normalarray)
