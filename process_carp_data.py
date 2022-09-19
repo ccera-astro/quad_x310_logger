@@ -70,7 +70,7 @@ DAY = 86400
 # With 86400/args.step bins per sidereal day
 #
 lmstarray = [0]*int(DAY/args.step)
-lmstcount = [1]*int(DAY/args.step)
+lmstcount = [0]*int(DAY/args.step)
 
 fftarray = np.zeros(FFTSIZE,dtype=np.float64)
 fftcount = 0
@@ -229,8 +229,9 @@ if (args.tpout != "" and args.tpout != None):
     #
     outvalues = lmstarray
     outcounts = lmstcount
-    outvalues = np.divide(outvalues,outcounts)
-    outcounts = np.subtract(outcounts, 1)
+    for ndx in range(len(outvalues)):
+        if (outcounts[ndx] > 0):
+            outvalues[ndx] /= outcounts[ndx]
     
     #
     # Determine minv
@@ -238,9 +239,8 @@ if (args.tpout != "" and args.tpout != None):
     minv = 999999.99
     for ndx in range(len(outvalues)):
         if (outcounts[ndx] > 0):
-            v = outvalues[ndx]
-            if (v < minv):
-                minv = v
+            if (outvalues[ndx] < minv):
+                minv = outvalues[ndx]
     #
     # Produce a smoothed output
     #
