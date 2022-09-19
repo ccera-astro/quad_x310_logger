@@ -168,8 +168,7 @@ for f in args.file:
         # The actual index value
         # (Which is INT(LMST/stepsize)
         #
-        lmsi= int(lmst)
-        lmsi = int(lmst / args.step)
+        lmsi = math.ceil(lmst / args.step)
 
         #
         # We only do "time window" processing if both
