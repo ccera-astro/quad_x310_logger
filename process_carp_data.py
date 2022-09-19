@@ -69,9 +69,8 @@ DAY = 86400
 #
 # With 86400/args.step bins per sidereal day
 #
-lmstarrays = []
-lmstcounts = []
-fndx = 0
+lmstarray = [0]*int(DAY/args.step)
+lmstcount = [0]*int(DAY/args.step)
 
 fftarray = np.zeros(FFTSIZE,dtype=np.float64)
 fftcount = 0
@@ -87,8 +86,6 @@ for f in args.file:
     #
     # For each line in the input file
     #
-    lmstarrays.append([0.0]*int(DAY/args.step))
-    lmstcounts.append([0]*int(DAY/args.step))
     while True:
         l = fp.readline()
         if (l == ""):
@@ -179,8 +176,8 @@ for f in args.file:
             # If this data item's LMST is within the "interesting window"
             #
             if (lmst >= almst-(adur/2.0) and lmst <= almst+(adur/2.0)):
-                lmstarrays[fndx][lmsi] += s
-                lmstcounts[fndx][lmsi] += 1
+                lmstarray[lmsi] += s
+                lmstcount[lmsi] += 1
                 fftarray = np.add(fftarray, a)
                 fftcount += 1
             
@@ -213,45 +210,29 @@ for f in args.file:
                 ctxarray = np.add(ctxarray, a)
                 ctxcount += 1
         else:
-            lmstarrays[fndx][lmsi] += s
-            lmstcounts[fndx][lmsi] += 1
+            lmstarray[lmsi] += s
+            lmstcount[fndx][lmsi] += 1
             fftarray = np.add(fftarray, a)
             fftcount += 1
     fp.close()
-    fndx += 1
          
 if (args.tpout != "" and args.tpout != None):
     outbuf = []
-    narrays = []
     
     #
     # Process total-power/continuum data
     #
+    outvalues = lmstarray
+    outcounts = lmstcount
     
     #
-    # For each of the collected inputs, normalize the inputs
+    # Determine minv
     #
-    for ndx in range(0,len(lmstarrays)):
-        normalarray = []
-        for indx in range(0,len(lmstarrays[ndx])):
-            if (lmstcounts[ndx][indx] > 0 and lmstarrays[ndx][indx] > 0.0):
-                lmstarrays[ndx][indx] /= lmstcounts[ndx][indx]
-                normalarray.append(lmstarrays[ndx][indx])
-        normalarray = np.array(normalarray)
-        mv = min(normalarray)
-        lmstarrays[ndx] = np.divide(lmstarrays[ndx],mv)
-
-    outcounts = [0]*int(DAY/args.step)
-    outvalues = [0.0]*int(DAY/args.step)
-    
-    for v in lmstarrays:
-        outvalues = np.add(outvalues, v)
-        for ndx in range(0,len(outcounts)):
-            if (v[ndx] > 0.0):
-                outcounts[ndx] += 1
-    
-    outvalues = np.divide(outvalues, outcounts)
-    
+    minv = 999999.99
+    for v in outvalues:
+        if (v > 0.0):
+            if (v < minv):
+                minv = v
     #
     # Produce a smoothed output
     #
@@ -273,7 +254,7 @@ if (args.tpout != "" and args.tpout != None):
             #  produce a temperature estimate
             #
             if (args.raw == False):
-                t = s
+                t = s/minv
                 #
                 # Convert into (antenna) temperature, given TSYS and TMIN
                 #
