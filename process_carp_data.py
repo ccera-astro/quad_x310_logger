@@ -324,7 +324,7 @@ if (args.fftout != "" and args.fftout != ""):
             outarray[ndx] += fftarray[ndx+1]
         fftarray  = np.divide(outarray, 2.0)
         
-        ctxout = np.zeros(int(len(fftarray)/2), dtype=np.float64)
+        ctxout = np.zeros(int(len(ctxarray)/2), dtype=np.float64)
         for ndx in range(len(ctxout)):
             ctxout[ndx] += ctxarray[ndx]
             ctxout[ndx] += ctxarray[ndx+1]
