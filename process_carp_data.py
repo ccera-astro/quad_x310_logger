@@ -320,14 +320,16 @@ if (args.fftout != "" and args.fftout != ""):
         outarray = np.zeros(int(len(fftarray)/2), dtype=np.float64)
     
         for ndx in range(len(outarray)):
-            outarray[ndx] += fftarray[ndx]
-            outarray[ndx] += fftarray[ndx+1]
+            fndx = ndx * 2
+            outarray[ndx] += fftarray[fndx]
+            outarray[ndx] += fftarray[fndx+1]
         fftarray  = np.divide(outarray, 2.0)
         
         ctxout = np.zeros(int(len(ctxarray)/2), dtype=np.float64)
         for ndx in range(len(ctxout)):
-            ctxout[ndx] += ctxarray[ndx]
-            ctxout[ndx] += ctxarray[ndx+1]
+            cndx = ndx * 2
+            ctxout[ndx] += ctxarray[cndx]
+            ctxout[ndx] += ctxarray[cndx+1]
         ctxarray = np.divide(ctxout, 2.0)
         
     
