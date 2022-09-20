@@ -313,6 +313,9 @@ if (args.fftout != "" and args.fftout != ""):
     if (fftcount <= 0):
         raise ValueError("No spectral data within specified range")
     
+    #
+    # "Crunch" the fftarray and ctxarray
+    #
     if (args.crunch == True):
         outarray = np.zeros(int(len(fftarray)/2), dtype=np.float64)
     
@@ -320,6 +323,12 @@ if (args.fftout != "" and args.fftout != ""):
             outarray[ndx] += fftarray[ndx]
             outarray[ndx] += fftarray[ndx+1]
         fftarray  = np.divide(outarray, 2.0)
+        
+        ctxout = np.zeros(int(len(fftarray)/2), dtype=np.float64)
+        for ndx in range(len(ctxout)):
+            ctxout[ndx] += ctxarray[ndx]
+            ctxout[ndx] += ctxarray[ndx+1]
+        ctxarray = np.divide(ctxout, 2.0)
         
     
     #
