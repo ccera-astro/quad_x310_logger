@@ -56,6 +56,7 @@ parser.add_argument("--redshift", help="Compute red-shift relative to this value
 parser.add_argument("--maskcenter", help="Center frequency for masking (MHz)", type=float, default=0.0)
 parser.add_argument("--maskwidth", help="Width for masking (MHz)", type=float, default=0.0)
 parser.add_argument("--klen", help="Kernel length for final TP filter", type=int, default=1)
+parser.add_argument("--crunch", help="Halve spectral resolution", action="store_true", default=False)
 
 
 args = parser.parse_args()
@@ -312,6 +313,15 @@ if (args.fftout != "" and args.fftout != ""):
     if (fftcount <= 0):
         raise ValueError("No spectral data within specified range")
     
+    if (args.crunch == True):
+        outarray = np.zeros(int(len(fftarray)/2), dtype=np.float64)
+    
+        for ndx in range(len(outarray)):
+            outarray[ndx] += fftarray[ndx]
+            outarray[ndx] += fftarray[ndx+1]
+        fftarray  = np.divide(outarray, 2.0)
+        
+    
     #
     # Average all the samples we have in fftarray
     #
@@ -329,7 +339,7 @@ if (args.fftout != "" and args.fftout != ""):
         #  afterwards.
         #
         pwravg = sum(fftarray)
-        pwravg /= FFTSIZE
+        pwravg /= len(fftarray)
         
         #
         # Determine average of "context" and normalize
@@ -438,10 +448,10 @@ if (args.fftout != "" and args.fftout != ""):
     
     if args.redshift > 0.0:
         freq += bw/2.0
-        incr = -(bw/FFTSIZE)
+        incr = -(bw/len(fftarray))
     else:
         freq -= bw/2.0
-        incr = bw/FFTSIZE
+        incr = bw/len(fftarray)
         
     a = args.alpha
     b = 1.0 - args.alpha
