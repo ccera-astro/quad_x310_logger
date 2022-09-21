@@ -335,7 +335,7 @@ if (args.fftout != "" and args.fftout != ""):
         fp.write("%.5e\n" % (v/minv))
     fp.close()
 
-    ctxarray = np.add(ctxarray_low, ctx_array_high)
+    ctxarray = np.add(ctxarray_low, ctxarray_high)
     ctxarray = np.divide(ctxarray, 2.0)
     
     #
