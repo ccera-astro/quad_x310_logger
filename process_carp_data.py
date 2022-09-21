@@ -346,25 +346,31 @@ if (args.fftout != "" and args.fftout != ""):
     #  them seperately.
     #
     
+    #
+    # Deal with crunchage
+    #
     if (args.crunch == True):
         ctxarray_low = crunchit(ctxarray_low)
     
     #
     # Record the plot data
     #  
-    fp = open(args.fftout+"-context_low.dat", "w")
+    fp = open(args.fftout+"-context_before.dat", "w")
     ctxarray_low = np.divide(ctxarray_low, ctxcount_low)
     minv = min(ctxarray_low)
     plotspec(fp, ctxarray_low, freq, bw, 1.0/minv)
     fp.close()
     
+    #
+    # Deal with crunchage
+    #
     if (args.crunch == True):
         ctxarray_high = crunchit(ctxarray_high)
     
     #
     # Record the plot data
     #  
-    fp = open(args.fftout+"-context_high.dat", "w")
+    fp = open(args.fftout+"-context_after.dat", "w")
     ctxarray_high = np.divide(ctxarray_high, ctxcount_high)
     minv = min(ctxarray_high)
     plotspec(fp, ctxarray_high, freq, bw, 1.0/minv)
@@ -377,21 +383,8 @@ if (args.fftout != "" and args.fftout != ""):
     #  resolution.
     #
     if (args.crunch == True):
-        outarray = np.zeros(int(len(fftarray)/2), dtype=np.float64)
-    
-        for ndx in range(len(outarray)):
-            fndx = ndx * 2
-            outarray[ndx] += fftarray[fndx]
-            outarray[ndx] += fftarray[fndx+1]
-        fftarray  = np.divide(outarray, 2.0)
-        
-        
-        ctxout = np.zeros(int(len(ctxarray)/2), dtype=np.float64)
-        for ndx in range(len(ctxout)):
-            cndx = ndx * 2
-            ctxout[ndx] += ctxarray[cndx]
-            ctxout[ndx] += ctxarray[cndx+1]
-        ctxarray = np.divide(ctxout, 2.0)
+        fftarray = crunchit(fftarray)
+        ctxarray = crunchit(ctxarray)
         
     
     #
