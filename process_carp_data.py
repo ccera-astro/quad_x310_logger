@@ -316,29 +316,37 @@ if (args.fftout != "" and args.fftout != ""):
     if (fftcount <= 0):
         raise ValueError("No spectral data within specified range")
     
+    
+    #
+    # Then just smash 'em together for further processing
+    #
+    ctxarray = np.add(ctxarray_low, ctxarray_high)
+    
+    
     #
     # We initially decompose into "high" and "low" contexts, just so we can log
     #  them seperately.
     #
     
     fp = open(args.fftout+"-context_low.dat", "w")
+    ctxarray_low = np.divide(ctxarray_low, ctxcount_low)
     minv = min(ctxarray_low)
-    minv /= ctxcount_low
     for v in ctxarray_low:
         fp.write("%.5e\n" % (v/minv))
     fp.close()
     
     fp = open(args.fftout+"-context_high.dat", "w")
+    ctxarray_high = np.divide(ctxarray_high, ctxcount_high)
     minv = min(ctxarray_high)
-    minv /= ctxcount_high
     for v in ctxarray_high:
         fp.write("%.5e\n" % (v/minv))
     fp.close()
 
-    ctxarray = np.add(ctxarray_low, ctxarray_high)
     
     #
-    # "Crunch" the fftarray and ctxarray if indicated
+    # "Crunch" the fftarray and ctxarray if indicated with the --crunch
+    #  command line option.  This improves sensitivity at the expense of
+    #  resolution.
     #
     if (args.crunch == True):
         outarray = np.zeros(int(len(fftarray)/2), dtype=np.float64)
