@@ -216,7 +216,7 @@ for f in args.file:
             # Then the "above"
             #
             lower = almst+(args.ctxoffset*60.0)
-            lower += adur/2.0
+            lower -= adur/2.0
             upper = lower+(adur)
             
             #
@@ -336,7 +336,6 @@ if (args.fftout != "" and args.fftout != ""):
     fp.close()
 
     ctxarray = np.add(ctxarray_low, ctxarray_high)
-    ctxarray = np.divide(ctxarray, 2.0)
     
     #
     # "Crunch" the fftarray and ctxarray if indicated
@@ -381,7 +380,7 @@ if (args.fftout != "" and args.fftout != ""):
         #
         # Determine average of "context" and normalize
         #
-        ctxarray = np.divide(ctxarray, ctxcount_low)
+        ctxarray = np.divide(ctxarray, ctxcount_low+ctxcount_high)
         ctxarray = np.divide(ctxarray, np.min(ctxarray))
         
         fp = open(args.fftout+"-context.dat", "w")
