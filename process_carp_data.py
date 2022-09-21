@@ -224,7 +224,7 @@ for f in args.file:
             #
             if (args.ctxoffset > 0.0 and lmst >= lower and lmst <= upper):
                 ctxarray_high = np.add(ctxarray_high, a)
-                ctxcount_low += 1
+                ctxcount_high += 1
         else:
             lmstarray[lmsi] += s
             lmstcount[lmsi] += 1
@@ -367,7 +367,7 @@ if (args.fftout != "" and args.fftout != ""):
     #
     # If there was a context specified, process it
     #
-    if (ctxcount > 0):
+    if (ctxcount_low > 0):
         
         #
         # Rememebr how much the average (baseline) power is
@@ -418,7 +418,7 @@ if (args.fftout != "" and args.fftout != ""):
     #
     # Not using "context"--use "self baseline" technique
     #
-    if (ctxcount <= 0):
+    if (ctxcount_low <= 0):
         #
         # Compute a large-kernel median filter on observation array, to give a good
         #  baseline estimate
