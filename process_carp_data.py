@@ -325,14 +325,14 @@ if (args.fftout != "" and args.fftout != ""):
     minv = min(ctxarray_low)
     minv /= ctxcount_low
     for v in ctxarray_low:
-        fp.write("%.5e\n", (v/minv))
+        fp.write("%.5e\n" % (v/minv))
     fp.close()
     
     fp = open(args.fftout+"-context_high.dat", "w")
     minv = min(ctxarray_high)
     minv /= ctxcount_high
     for v in ctxarray_high:
-        fp.write("%.5e\n"< (v/minv))
+        fp.write("%.5e\n" % (v/minv))
     fp.close()
 
     ctxarray = np.add(ctxarray_low, ctx_array_high)
