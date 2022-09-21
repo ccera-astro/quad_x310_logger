@@ -415,7 +415,7 @@ if (args.fftout != "" and args.fftout != ""):
         #
         # Record the plot data
         #
-        fp = open(args.fftout+"-context.dat", "w")
+        fp = open(args.fftout+"-context_merged.dat", "w")
         plotspec(fp, ctxarray, freq, bw, 1.0)
         fp.close()
         
