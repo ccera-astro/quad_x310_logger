@@ -212,7 +212,6 @@ for f in args.file:
             if (lmst >= almst-(adur/2.0) and lmst <= almst+(adur/2.0)):
                 lmstarray[lmsi] += s
                 lmstcount[lmsi] += 1
-                print ("Obs LMST: %.3f" % (lmst/3600.0))
                 fftarray = np.add(fftarray, a)
                 fftcount += 1
             
@@ -228,7 +227,6 @@ for f in args.file:
             lower -= adur/2.0
             upper = lower+(adur)
             if (args.ctxoffset > 0.0 and lmst >= lower and lmst <= upper):
-                print ("Below LMST: %.3f\n" % (lmst/3600.0))
                 ctxarray_low = np.add(ctxarray_low, a)
                 ctxcount_low += 1
             
@@ -243,7 +241,6 @@ for f in args.file:
             # But only record it if they specified an offset for context
             #
             if (args.ctxoffset > 0.0 and lmst >= lower and lmst <= upper):
-                print ("Above LMST: %.3f" % (lmst/3600.0))
                 ctxarray_high = np.add(ctxarray_high, a)
                 ctxcount_high += 1
         else:
