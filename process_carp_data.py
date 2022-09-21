@@ -77,8 +77,11 @@ lmstcount = [0]*int(DAY/args.step)
 fftarray = np.zeros(FFTSIZE,dtype=np.float64)
 fftcount = 0
 
-ctxarray = np.zeros(FFTSIZE,dtype=np.float64)
-ctxcount = 0
+ctxarray_low = np.zeros(FFTSIZE,dtype=np.float64)
+ctxarray_high = np.zeros(FFTSIZE,dtype=np.float64)
+
+ctxcount_low = 0
+ctxcount_high = 0
 
 binwidth = -1
 
@@ -206,8 +209,8 @@ for f in args.file:
             lower -= adur/2.0
             upper = lower+(adur)
             if (args.ctxoffset > 0.0 and lmst >= lower and lmst <= upper):
-                ctxarray = np.add(ctxarray, a)
-                ctxcount += 1
+                ctxarray_low = np.add(ctxarray_low, a)
+                ctxcount_low += 1
             
             #
             # Then the "above"
@@ -220,8 +223,8 @@ for f in args.file:
             # But only record it if they specified an offset for context
             #
             if (args.ctxoffset > 0.0 and lmst >= lower and lmst <= upper):
-                ctxarray = np.add(ctxarray, a)
-                ctxcount += 1
+                ctxarray_high = np.add(ctxarray_high, a)
+                ctxcount_low += 1
         else:
             lmstarray[lmsi] += s
             lmstcount[lmsi] += 1
@@ -314,7 +317,29 @@ if (args.fftout != "" and args.fftout != ""):
         raise ValueError("No spectral data within specified range")
     
     #
-    # "Crunch" the fftarray and ctxarray
+    # We initially decompose into "high" and "low" contexts, just so we can log
+    #  them seperately.
+    #
+    
+    fp = open(args.fftout+"-context_low.dat", "w")
+    minv = min(ctxarray_low)
+    minv /= ctxcount_low
+    for v in context_low:
+        fp.write("%.5e\n", (v/minv))
+    fp.close()
+    
+    fp = open(args.fftout+"-context_high.dat", "w")
+    minv = min(ctxarray_high)
+    minv /= ctxcount_high
+    for v in context_high:
+        fp.write("%.5e\n"< (v/minv))
+    fp.close()
+
+    ctxarray = np.add(ctxarray_low, ctx_array_high)
+    ctxarray = np.divide(ctxarray, 2.0)
+    
+    #
+    # "Crunch" the fftarray and ctxarray if indicated
     #
     if (args.crunch == True):
         outarray = np.zeros(int(len(fftarray)/2), dtype=np.float64)
@@ -324,6 +349,7 @@ if (args.fftout != "" and args.fftout != ""):
             outarray[ndx] += fftarray[fndx]
             outarray[ndx] += fftarray[fndx+1]
         fftarray  = np.divide(outarray, 2.0)
+        
         
         ctxout = np.zeros(int(len(ctxarray)/2), dtype=np.float64)
         for ndx in range(len(ctxout)):
@@ -355,7 +381,7 @@ if (args.fftout != "" and args.fftout != ""):
         #
         # Determine average of "context" and normalize
         #
-        ctxarray = np.divide(ctxarray, ctxcount)
+        ctxarray = np.divide(ctxarray, ctxcount_low)
         ctxarray = np.divide(ctxarray, np.min(ctxarray))
         
         fp = open(args.fftout+"-context.dat", "w")
