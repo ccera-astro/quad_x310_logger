@@ -35,6 +35,14 @@ import scipy.signal
 import scipy.interpolate
 import random
 
+def crunchit(indata):
+    out = np.zeros(int(len(indata)/2), dtype=np.float64)
+    for ndx in range(len(out)):
+        out[ndx] = indata[ndx*2]
+        out[ndx] += indata[(ndx*2)+1]
+    out = np.divide(out, 2.0)
+    return (out)
+
 parser = argparse.ArgumentParser(description="Process CARP antenna data")
 
 parser.add_argument("file", type=str, help="Input files", metavar="file", nargs="+")
@@ -328,6 +336,9 @@ if (args.fftout != "" and args.fftout != ""):
     #  them seperately.
     #
     
+    if (args.crunch == True):
+        ctxarray_low = crunchit(ctxarray_low)
+        
     fp = open(args.fftout+"-context_low.dat", "w")
     ctxarray_low = np.divide(ctxarray_low, ctxcount_low)
     minv = min(ctxarray_low)
@@ -335,6 +346,9 @@ if (args.fftout != "" and args.fftout != ""):
         fp.write("%.5e\n" % (v/minv))
     fp.close()
     
+    if (args.crunch == True):
+        ctxarray_high = crunchit(ctxarray_high)
+        
     fp = open(args.fftout+"-context_high.dat", "w")
     ctxarray_high = np.divide(ctxarray_high, ctxcount_high)
     minv = min(ctxarray_high)
