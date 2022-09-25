@@ -72,7 +72,7 @@ parser.add_argument("--maskcenter", help="Center frequency for masking (MHz)", t
 parser.add_argument("--maskwidth", help="Width for masking (MHz)", type=float, default=0.0)
 parser.add_argument("--klen", help="Kernel length for final TP filter", type=int, default=1)
 parser.add_argument("--crunch", help="Halve spectral resolution", action="store_true", default=False)
-parser.add_argument("--plotoffset", help="Offset for intermediate plot data", type=flat, default=0.0)
+parser.add_argument("--plotoffset", help="Offset for intermediate plot data", type=float, default=0.0)
 
 
 args = parser.parse_args()
