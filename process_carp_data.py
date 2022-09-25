@@ -43,11 +43,11 @@ def crunchit(indata):
     out = np.divide(out, 2.0)
     return (out)
 
-def plotspec(fp, indata, freq, bw, scale):
+def plotspec(fp, indata, freq, bw, scale, offset):
     startf = freq-(bw/2.0)
     incr = bw/len(indata)
     for v in indata:
-        fp.write ("%.4f %.5e\n" % (startf, v*scale))
+        fp.write ("%.4f %.5e\n" % (startf, (v*scale)+offset))
         startf += incr
 
 parser = argparse.ArgumentParser(description="Process CARP antenna data")
@@ -72,6 +72,7 @@ parser.add_argument("--maskcenter", help="Center frequency for masking (MHz)", t
 parser.add_argument("--maskwidth", help="Width for masking (MHz)", type=float, default=0.0)
 parser.add_argument("--klen", help="Kernel length for final TP filter", type=int, default=1)
 parser.add_argument("--crunch", help="Halve spectral resolution", action="store_true", default=False)
+parser.add_argument("--plotoffset", help="Offset for intermediate plot data", type=flat, default=0.0)
 
 
 args = parser.parse_args()
@@ -358,7 +359,7 @@ if (args.fftout != "" and args.fftout != ""):
     fp = open(args.fftout+"-context_before.dat", "w")
     ctxarray_low = np.divide(ctxarray_low, ctxcount_low)
     minv = min(ctxarray_low)
-    plotspec(fp, ctxarray_low, freq, bw, 1.0/minv)
+    plotspec(fp, ctxarray_low, freq, bw, 1.0/minv, -args.plotoffset)
     fp.close()
     
     #
@@ -373,7 +374,7 @@ if (args.fftout != "" and args.fftout != ""):
     fp = open(args.fftout+"-context_after.dat", "w")
     ctxarray_high = np.divide(ctxarray_high, ctxcount_high)
     minv = min(ctxarray_high)
-    plotspec(fp, ctxarray_high, freq, bw, 1.0/minv)
+    plotspec(fp, ctxarray_high, freq, bw, 1.0/minv, args.plotoffset)
     fp.close()
 
     
@@ -416,7 +417,7 @@ if (args.fftout != "" and args.fftout != ""):
         # Record the plot data
         #
         fp = open(args.fftout+"-context_merged.dat", "w")
-        plotspec(fp, ctxarray, freq, bw, 1.0)
+        plotspec(fp, ctxarray, freq, bw, 1.0, 0.0)
         fp.close()
         
         
@@ -429,7 +430,7 @@ if (args.fftout != "" and args.fftout != ""):
         # Record the plot data
         #
         fp = open(args.fftout+"-observation.dat", "w")
-        plotspec(fp, fftarray, freq, bw, 1.0)
+        plotspec(fp, fftarray, freq, bw, 1.0, 0.0)
         fp.close()
         
         #
@@ -438,7 +439,7 @@ if (args.fftout != "" and args.fftout != ""):
         fftarray = np.subtract(fftarray,ctxarray)
         
         fp = open(args.fftout+"-prescale.dat", "w")
-        plotspec(fp, fftarray, freq, bw, 1.0)
+        plotspec(fp, fftarray, freq, bw, 1.0, 0.0)
         fp.close()
         
         #
@@ -465,7 +466,7 @@ if (args.fftout != "" and args.fftout != ""):
         # Useful to help understand the end result
         #
         fp = open(args.fftout+"-baseline.dat", "w")
-        plotspec(fp, smooth, freq, bw, 1.0)
+        plotspec(fp, smooth, freq, bw, 1.0, 0.0)
         fp.close()
         
         #
@@ -475,7 +476,7 @@ if (args.fftout != "" and args.fftout != ""):
         fftarray = scipy.signal.medfilt(fftarray, kernel_size=1)
         
         fp = open(args.fftout+"-observation.dat", "w")
-        plotspec(fp, fftarray, freq, bw, 1.0)
+        plotspec(fp, fftarray, freq, bw, 1.0, 0.0)
         fp.close()
         
         #
