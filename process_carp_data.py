@@ -34,6 +34,7 @@ import math
 import scipy.signal
 import scipy.interpolate
 import random
+import time
 
 def crunchit(indata):
     out = np.zeros(int(len(indata)/2), dtype=np.float64)
@@ -43,12 +44,23 @@ def crunchit(indata):
     out = np.divide(out, 2.0)
     return (out)
 
-def plotspec(fp, indata, freq, bw, scale, offset):
+def plotspec(fp, indata, freq, bw, scale, offset,sep):
     startf = freq-(bw/2.0)
     incr = bw/len(indata)
     for v in indata:
-        fp.write ("%.4f %.5e\n" % (startf, (v*scale)+offset))
+        fp.write ("%.4f%s%.5e\n" % (startf, sep, (v*scale)+offset))
         startf += incr
+
+def dateificate(s,dateify):
+    
+    if (dateify == True):
+        ltp = time.gmtime(time.now())
+        dstr = "%04d%02d%02d" % (ltp.tm_year, ltp.tm_mon, ltp.tm_mday)
+        return (s+dstr+"-")
+    else:
+        return(s)
+    
+    
 
 parser = argparse.ArgumentParser(description="Process CARP antenna data")
 
@@ -73,10 +85,17 @@ parser.add_argument("--maskwidth", help="Width for masking (MHz)", type=float, d
 parser.add_argument("--klen", help="Kernel length for final TP filter", type=int, default=1)
 parser.add_argument("--crunch", help="Halve spectral resolution", action="store_true", default=False)
 parser.add_argument("--plotoffset", help="Offset for intermediate plot data", type=float, default=0.0)
-
+parser.add_argument("--csv", help="Produce CSV files", action="store_true", default=False)
+parser.add_argument("--dateify", help="Insert date into filenames", action="store_true", default=False)
 
 args = parser.parse_args()
 
+suffix = ".dat"
+sep = " "
+
+if (args.csv):
+    suffix = ".csv"
+    sep = ","
 
 FFTSIZE = 2048
 C = 299792
@@ -315,7 +334,7 @@ if (args.tpout != "" and args.tpout != None):
             aval = t*a + b*aval
 
             outbuf.append((lmst, aval))
-    fp = open(args.tpout, "w")
+    fp = open(dateificate(args.tpout,args.dateify), "w")
     
     values = []
     for v in outbuf:
@@ -323,7 +342,7 @@ if (args.tpout != "" and args.tpout != None):
     values = np.array(values)
     values = scipy.signal.medfilt(values, kernel_size=args.klen)
     for t,v in zip(outbuf,values):
-        fp.write("%.3f %.5e\n" % (t[0], v))
+        fp.write("%.3f%s%.5e\n" % (t[0], sep, v))
         
         
     fp.close()
@@ -356,10 +375,10 @@ if (args.fftout != "" and args.fftout != ""):
     #
     # Record the plot data
     #  
-    fp = open(args.fftout+"-context_before.dat", "w")
+    fp = open(dateificate(args.fftout, args.dateify)+"-context_before%s" % suffix, "w")
     ctxarray_low = np.divide(ctxarray_low, ctxcount_low)
     minv = min(ctxarray_low)
-    plotspec(fp, ctxarray_low, freq, bw, 1.0/minv, -args.plotoffset)
+    plotspec(fp, ctxarray_low, freq, bw, 1.0/minv, -args.plotoffset, sep)
     fp.close()
     
     #
@@ -371,10 +390,10 @@ if (args.fftout != "" and args.fftout != ""):
     #
     # Record the plot data
     #  
-    fp = open(args.fftout+"-context_after.dat", "w")
+    fp = open(dateificate(args.fftout, args.dateify)+"-context_after%s" % suffix, "w")
     ctxarray_high = np.divide(ctxarray_high, ctxcount_high)
     minv = min(ctxarray_high)
-    plotspec(fp, ctxarray_high, freq, bw, 1.0/minv, args.plotoffset)
+    plotspec(fp, ctxarray_high, freq, bw, 1.0/minv, args.plotoffset, sep)
     fp.close()
 
     
@@ -416,8 +435,8 @@ if (args.fftout != "" and args.fftout != ""):
         #
         # Record the plot data
         #
-        fp = open(args.fftout+"-context_merged.dat", "w")
-        plotspec(fp, ctxarray, freq, bw, 1.0, 0.0)
+        fp = open(dateificate(args.fftout, args.dateify)+"-context_merged%s" % suffix, "w")
+        plotspec(fp, ctxarray, freq, bw, 1.0, 0.0, sep)
         fp.close()
         
         
@@ -429,8 +448,8 @@ if (args.fftout != "" and args.fftout != ""):
         #
         # Record the plot data
         #
-        fp = open(args.fftout+"-observation.dat", "w")
-        plotspec(fp, fftarray, freq, bw, 1.0, 0.0)
+        fp = open(dateificate(args.fftout, args.dateify)+"-observation%s" % suffix, "w")
+        plotspec(fp, fftarray, freq, bw, 1.0, 0.0, sep)
         fp.close()
         
         #
@@ -438,8 +457,8 @@ if (args.fftout != "" and args.fftout != ""):
         #
         fftarray = np.subtract(fftarray,ctxarray)
         
-        fp = open(args.fftout+"-prescale.dat", "w")
-        plotspec(fp, fftarray, freq, bw, 1.0, 0.0)
+        fp = open(dateificate(args.fftout, args.dateify)+"-prescale%s" % suffix, "w")
+        plotspec(fp, fftarray, freq, bw, 1.0, 0.0, sep)
         fp.close()
         
         #
@@ -465,8 +484,8 @@ if (args.fftout != "" and args.fftout != ""):
         #
         # Useful to help understand the end result
         #
-        fp = open(args.fftout+"-baseline.dat", "w")
-        plotspec(fp, smooth, freq, bw, 1.0, 0.0)
+        fp = open(dateificate(args.fftout, args.dateify)+"-baseline%s" % suffix, "w")
+        plotspec(fp, smooth, freq, bw, 1.0, 0.0, sep)
         fp.close()
         
         #
@@ -475,8 +494,8 @@ if (args.fftout != "" and args.fftout != ""):
         #
         fftarray = scipy.signal.medfilt(fftarray, kernel_size=1)
         
-        fp = open(args.fftout+"-observation.dat", "w")
-        plotspec(fp, fftarray, freq, bw, 1.0, 0.0)
+        fp = open(dateificate(args.fftout, args.dateify)+"-observation%s" % suffix, "w")
+        plotspec(fp, fftarray, freq, bw, 1.0, 0.0, sep)
         fp.close()
         
         #
@@ -505,7 +524,7 @@ if (args.fftout != "" and args.fftout != ""):
     #
     # Open the output file
     #
-    fp = open(args.fftout+"-final.dat", "w")
+    fp = open(dateificate(args.fftout, args.dateify)+"-final%s" % suffix, "w")
     
     if args.redshift > 0.0:
         freq += bw/2.0
@@ -535,9 +554,9 @@ if (args.fftout != "" and args.fftout != ""):
             smoove = v
         smoove = a*v + smoove*b
         if (args.redshift <= 0.0):
-            fp.write("%.5f %.5e\n" % (freq, smoove))
+            fp.write("%.5f%s%.5e\n" % (freq, sep, smoove))
         else:
-            fp.write("%.3f %.5e\n" % (rs, smoove))
+            fp.write("%.3f%s%.5e\n" % (rs, sep, smoove))
         freq += incr
     
     
