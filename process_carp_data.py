@@ -54,7 +54,7 @@ def plotspec(fp, indata, freq, bw, scale, offset,sep):
 def dateificate(s,dateify):
     
     if (dateify == True):
-        ltp = time.gmtime(time.now())
+        ltp = time.gmtime(time.time())
         dstr = "%04d%02d%02d" % (ltp.tm_year, ltp.tm_mon, ltp.tm_mday)
         return (s+dstr+"-")
     else:
