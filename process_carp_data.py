@@ -554,9 +554,9 @@ if (args.fftout != "" and args.fftout != ""):
             smoove = v
         smoove = a*v + smoove*b
         if (args.redshift <= 0.0):
-            fp.write("%.5f%s%.5e\n" % (freq, sep, smoove))
+            fp.write("%.5f%s%.7e\n" % (freq, sep, smoove))
         else:
-            fp.write("%.3f%s%.5e\n" % (rs, sep, smoove))
+            fp.write("%.3f%s%.7e\n" % (rs, sep, smoove))
         freq += incr
     
     
