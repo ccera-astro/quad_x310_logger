@@ -48,7 +48,7 @@ def plotspec(fp, indata, freq, bw, scale, offset,sep):
     startf = freq-(bw/2.0)
     incr = bw/len(indata)
     for v in indata:
-        fp.write ("%.4f%s%.5e\n" % (startf, sep, (v*scale)+offset))
+        fp.write ("%.4f%s%.7e\n" % (startf, sep, (v*scale)+offset))
         startf += incr
 
 def dateificate(s,dateify):
@@ -342,7 +342,7 @@ if (args.tpout != "" and args.tpout != None):
     values = np.array(values)
     values = scipy.signal.medfilt(values, kernel_size=args.klen)
     for t,v in zip(outbuf,values):
-        fp.write("%.3f%s%.5e\n" % (t[0], sep, v))
+        fp.write("%.3f%s%.7e\n" % (t[0], sep, v))
         
         
     fp.close()
