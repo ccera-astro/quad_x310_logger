@@ -88,6 +88,8 @@ parser.add_argument("--plotoffset", help="Offset for intermediate plot data (Spe
 parser.add_argument("--csv", help="Produce CSV files", action="store_true", default=False)
 parser.add_argument("--dateify", help="Insert date into filenames", action="store_true", default=False)
 parser.add_argument("--vlsr", help="Enable VLSR bin rotation", action="store_true", default=False)
+parser.add_argument("--poly", help="Apply 7th-order polynomial fit to baseline data in FFT",
+    action="store_true", default=False)
 
 args = parser.parse_args()
 
@@ -471,12 +473,14 @@ if (args.fftout != "" and args.fftout != ""):
         ctxarray = np.divide(ctxarray, np.min(ctxarray))
         
         ctxarray = scipy.signal.medfilt(ctxarray,kernel_size=177)
-        polyfit = np.polyfit(np.arange(0,len(ctxarray)),ctxarray,5)
+        polyfit = np.polyfit(np.arange(0,len(ctxarray)),ctxarray,7)
         p = np.poly1d(polyfit)
         newctx = []
         for x in np.arange(len(ctxarray)):
             newctx.append(p(x))
-        #ctxarray = newctx
+        
+        if (args.poly == True):
+            ctxarray = newctx
             
         
         #
