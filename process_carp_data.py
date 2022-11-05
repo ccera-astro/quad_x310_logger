@@ -472,7 +472,7 @@ if (args.fftout != "" and args.fftout != ""):
         
         ctxarray = scipy.signal.medfilt(ctxarray,kernel_size=177)
         polyfit = np.polyfit(np.arange(0,len(ctxarray)),ctxarray)
-        p = np.poly1d(polyfit)
+        p = np.poly1d(polyfit,3)
         newctx = []
         for x in np.arange(len(ctxarray)):
             newctx.append(p(x))
