@@ -476,7 +476,7 @@ if (args.fftout != "" and args.fftout != ""):
         newctx = []
         for x in np.arange(len(ctxarray)):
             newctx.append(p(x))
-        ctxarray = newctx
+        #ctxarray = newctx
             
         
         #
