@@ -87,6 +87,7 @@ parser.add_argument("--crunch", help="Halve spectral resolution", action="store_
 parser.add_argument("--plotoffset", help="Offset for intermediate plot data (Spectral only)", type=float, default=0.0)
 parser.add_argument("--csv", help="Produce CSV files", action="store_true", default=False)
 parser.add_argument("--dateify", help="Insert date into filenames", action="store_true", default=False)
+parser.add_argument("--vlsr", help="Enable VLSR bin rotation", action="store_true", default=False)
 
 args = parser.parse_args()
 
@@ -130,6 +131,15 @@ recnum = 0
 for f in args.file:
     sys.stderr.write("Processing %s...\n" % f)
     
+    #
+    # This "knows" what our filenaming convention is
+    #
+    filedate = os.path.basename(f)[7:]
+    filedate = filedate.split(".")
+    filedate = filedate[0]
+    
+    #sys.stderr.write("The dating is %s...\n" % filedate)
+    
     fp = open(f, "r")
     #
     # For each line in the input file
@@ -168,6 +178,7 @@ for f in args.file:
         #
         freq = float(htoks[7])
         bw = float(htoks[9])
+        decl = float(htoks[6])
         
         if (args.maskcenter != 0.0):
             if (binwidth < 0):
@@ -183,6 +194,33 @@ for f in args.file:
         # Make into numpy array
         #
         a = np.asarray(toks,dtype=float)
+        
+        #
+        # We're doing VLSR processing
+        # Rotate the array by some number of bins, given by
+        #  "shift".
+        #
+        #
+        if (args.vlsr == True):
+            l = list(a)
+            
+            #
+            # LMST == RA in our system currently
+            #
+            lmst = float(htoks[tstart])*3600.0
+            lmst += float(htoks[tstart+1])*60.0
+            lmst += float(htoks[tstart+2])
+            
+            #
+            # UTC
+            #
+            utc = float(htoks[0])*3600.0
+            utc += float(htoks[1])*60.0
+            utc += float(htoks[2])
+            
+            shift = 1  # placeholder
+            l = l[shift:]+li[:shift]
+            a = np.array(l)
         
         #
         # Because that implies masking...
@@ -431,6 +469,8 @@ if (args.fftout != "" and args.fftout != ""):
         #
         ctxarray = np.divide(ctxarray, ctxcount_low+ctxcount_high)
         ctxarray = np.divide(ctxarray, np.min(ctxarray))
+        
+        ctxarray = scipy.signal.medfilt(ctxarray,kernel_size=177)
         
         #
         # Record the plot data
