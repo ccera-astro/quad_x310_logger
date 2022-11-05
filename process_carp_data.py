@@ -475,9 +475,9 @@ if (args.fftout != "" and args.fftout != ""):
         p = np.poly1d(polyfit)
         newctx = []
         for x in np.arange(len(ctxarray)):
-			newctx.append(p(x))
-		ctxarray = newctx
-			
+            newctx.append(p(x))
+        ctxarray = newctx
+            
         
         #
         # Record the plot data
