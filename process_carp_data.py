@@ -471,6 +471,13 @@ if (args.fftout != "" and args.fftout != ""):
         ctxarray = np.divide(ctxarray, np.min(ctxarray))
         
         ctxarray = scipy.signal.medfilt(ctxarray,kernel_size=177)
+        polyfit = np.polyfit(np.arange(0,len(ctxarray)),ctxarray)
+        p = np.poly1d(polyfit)
+        newctx = []
+        for x in np.arange(len(ctxarray)):
+			newctx.append(p(x))
+		ctxarray = newctx
+			
         
         #
         # Record the plot data
