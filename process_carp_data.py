@@ -288,7 +288,7 @@ for f in args.file:
             #
             # We don't need to recompute the vlsr correction that often...
             #
-            if ((rcnt % 15) == 0):
+            if ((rcnt % 20) == 0):
                 #
                 # LMST == RA in our system currently
                 #
@@ -331,7 +331,7 @@ for f in args.file:
                 shift /= bw/len(a)
                 shift = int(shift)
                 
-                print ("Updating shift: rcnt %d shift %d fdiff %f ts %s" % (rcnt, shift, fdiff, ts))
+                #print ("Updating shift: rcnt %d shift %d fdiff %f ts %s" % (rcnt, shift, fdiff, ts))
 
             #
             # Apply the current shift
