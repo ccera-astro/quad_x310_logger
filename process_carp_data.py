@@ -286,6 +286,7 @@ for f in args.file:
             #
             # LMST == RA in our system currently
             #
+            tstart = 3
             lmst = float(htoks[tstart])*3600.0
             lmst += float(htoks[tstart+1])*60.0
             lmst += float(htoks[tstart+2])
