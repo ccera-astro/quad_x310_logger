@@ -309,7 +309,7 @@ for f in args.file:
             #
             # Append UTC from input record
             #
-            ts = "%sT%02d:%02d:%02d" % (ts, int(htoks[0]), int(htoks[1], int(htoks[2])))
+            ts = "%sT%02d:%02d:%02d" % (ts, int(htoks[0]), int(htoks[1]), int(htoks[2]) )
             
             #
             # Then convert into time acceptable to astropy
