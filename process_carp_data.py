@@ -327,10 +327,11 @@ for f in args.file:
                 #
                 fprime = doppler_frequency(psrc, t, freq, loc)
                 shift = fprime-freq
+                fdiff = fprime - freq
                 shift /= bw/len(a)
                 shift = int(shift)
                 
-                print ("Updating shift: %d" % shift)
+                print ("Updating shift: rcnt %d shift %d fdiff %f" % (rcnt, shift, fdiff))
 
             #
             # Apply the current shift
