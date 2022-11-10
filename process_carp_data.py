@@ -329,6 +329,8 @@ for f in args.file:
                 shift = fprime-freq
                 shift /= bw/len(a)
                 shift = int(shift)
+                
+                print ("Updating shift: %d" % shift)
 
             #
             # Apply the current shift
