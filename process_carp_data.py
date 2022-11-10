@@ -305,6 +305,7 @@ for f in args.file:
                 decmin = abs(decmin) - abs(dech*60.0)
                 
                 decs = "%02d:%02d" % (dech, decmin)
+                print ("decs %s" % decs)
                 psrc = SkyCoord(ra = ras, dec = decs,frame = "icrs",unit = (u.hourangle,u.deg))
                 
                 #
