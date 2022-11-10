@@ -294,7 +294,7 @@ for f in args.file:
             #
             # Establish pointing to source
             #
-            psrc = SkyCoord(ra = float(htoks[tstart])+float(htoks[tstart+1])/60.0*u.hourangle,
+            psrc = SkyCoord(ra = (float(htoks[tstart])+float(htoks[tstart+1])/60.0)*u.hourangle,
                 dec = decl*u.deg, frame = "icrs")
             
             #
