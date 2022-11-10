@@ -26,6 +26,75 @@
 #  computing the total power, and converting into an antenna
 #  temperature estimate...
 #
+
+from astropy.time import Time
+from astropy.coordinates import SkyCoord, EarthLocation
+import astropy.units as u
+from astropy.units import Quantity
+import astropy.constants
+
+import numpy as np
+
+# Direction of motion of the Sun. Info from
+# http://herschel.esac.esa.int/hcss-doc-15.0/load/hifi_um/html/hifi_ref_frame.html#hum_lsr_frame
+psun = SkyCoord(ra = "18:03:50.29", dec = "+30:00:16.8",frame = "icrs",unit = (u.hourangle,u.deg))
+vsun = -20.0*u.km/u.s
+
+# vlsr routine
+def vlsr(t,loc,psrc,verbose=False):
+    """Compute the line of sight radial velocity
+
+    psrc: SkyCoord object or source
+    loc: EarthLocation object of observer
+    t: Time object
+    """
+    # Radial velocity correction to solar system barycenter
+    vsrc = psrc.radial_velocity_correction(obstime = t, location = loc)
+
+    # Projection of solar velocity towards the source
+    vsun_proj = psrc.cartesian.dot(psun.cartesian)*vsun
+
+    if verbose:
+        print("Barycentric radial velocity: {0:+8.3f}".format(vsrc.to(u.km/u.s)))
+        print("Projected solar velocity:    {0:+8.3f}".format(vsun_proj.to(u.km/u.s)))
+    
+    return vsun_proj-vsrc
+
+def doppler_frequency(psrc, t, rest_frequency, loc,  verbose=False):
+    """
+    Compute the Doppler corrected frequency, taking into account the line of sight radial velocity.
+
+    Args:
+        psrc (SkyCoord): sky location for correction
+        t (float): time for correction
+        rest_frequency (Union[Quantity, float]): observed frequency in LSR
+        loc (EarthLocation): observer location
+
+    Returns:
+        Quantity: Observable frequency
+    """
+    v1 = vlsr(t, loc, psrc, verbose=verbose)
+
+    beta = v1/astropy.constants.c
+    return np.sqrt((1 + beta)/(1 - beta)) * rest_frequency
+
+if __name__=="__notusednotusednotused__":
+    freq_hi = 1420.405751
+
+    # Test 1: Source towards direction of solar motion, Earth moving prependicular
+    loc = EarthLocation.from_geodetic(lat = 45.3491*u.deg, lon = -76.0413*u.deg, height = 100*u.m)
+    psrc = SkyCoord(ra = 5.55*u.hourangle, dec = -5.38*u.deg, frame = "icrs")
+    for d in range(19,31):
+        t = Time("2022-09-%02dT08:00:00" % d, scale="utc",format="isot")
+        v = vlsr(t,loc,psrc,verbose=False)
+        #print("LSR velocity:                {0:+8.3f}".format(v.to(u.km/u.s)))
+        print ("%s %.5f" % (t.to_value("datetime"), doppler_frequency(psrc, t, 1424.734, loc)))
+    for d in range(1,7):
+        t = Time("2022-10-%02dT08:00:00" % d, scale="utc",format="isot")
+        v = vlsr(t,loc,psrc,verbose=False)
+        print ("%s %.5f " % (t.to_value("datetime"), doppler_frequency(psrc, t, 1424.734, loc)))
+        #print("LSR velocity:                {0:+8.3f}".format(v.to(u.km/u.s)))
+
 import numpy as np
 import os
 import sys
@@ -90,8 +159,15 @@ parser.add_argument("--dateify", help="Insert date into filenames", action="stor
 parser.add_argument("--vlsr", help="Enable VLSR bin rotation", action="store_true", default=False)
 parser.add_argument("--poly", help="Apply 7th-order polynomial fit to baseline data in FFT",
     action="store_true", default=False)
+parser.add_argument("--latitude", type=float, help="Local geo latitude", default=45.3491)
+parser.add_argument("--longitude", type=float, help="Local geo longitude", default=76.0413)
 
 args = parser.parse_args()
+
+#
+# Establish location for astropy routines
+#
+loc = EarthLocation.from_geodetic(lat = args.latitude*u.deg, lon = args.longitude*u.deg, height = 100*u.m)
 
 suffix = ".dat"
 sep = " "
@@ -129,6 +205,7 @@ binwidth = -1
 almst = args.lmst * 3600.0
 adur = args.duration * 3600.0
 
+rcnt = 0
 recnum = 0
 for f in args.file:
     sys.stderr.write("Processing %s...\n" % f)
@@ -203,7 +280,7 @@ for f in args.file:
         #  "shift".
         #
         #
-        if (args.vlsr == True):
+        if (args.vlsr == True and ((rcnt % 3) == 0)):
             l = list(a)
             
             #
@@ -214,15 +291,45 @@ for f in args.file:
             lmst += float(htoks[tstart+2])
             
             #
-            # UTC
+            # Establish pointing to source
             #
-            utc = float(htoks[0])*3600.0
-            utc += float(htoks[1])*60.0
-            utc += float(htoks[2])
+            psrc = SkyCoord(ra = float(htoks[tstart])+float(htoks[tstart+1])/60.0*u.hourangle,
+                dec = decl*u.deg, frame = "icrs")
             
-            shift = 1  # placeholder
-            l = l[shift:]+li[:shift]
+            #
+            # Pick apart filedate
+            #
+            ts = filedate[0:4]
+            ts += "-"
+            ts += filedate[4:6]
+            ts += "-"
+            ts += filedate[6:8]
+            
+            #
+            # Append UTC from input record
+            #
+            ts = "%sT%02d:%02d:%02d" % (ts, int(htoks[0]), int(htoks[1], int(htoks[2])))
+            
+            #
+            # Then convert into time acceptable to astropy
+            #
+            t = Time("%s" % ts, scale="utc",format="isot")
+            
+            
+            #v = vlsr(t,loc,psrc,verbose=False)
+            
+            #
+            # Adjust center frequency based on VLSR
+            #
+            fprime = doppler_frequency(psrc, t, freq, loc)
+            shift = fprime-freq
+            shift /= bw/len(a)
+            shift = int(shift)
+
+            l = l[shift:]+l[:shift]
             a = np.array(l)
+        
+        rcnt += 1
         
         #
         # Because that implies masking...
@@ -472,14 +579,24 @@ if (args.fftout != "" and args.fftout != ""):
         ctxarray = np.divide(ctxarray, ctxcount_low+ctxcount_high)
         ctxarray = np.divide(ctxarray, np.min(ctxarray))
         
+        #
+        # Now, apply an aggressive median-filter to that, which
+        #  will produce a fairly-smooth baseline estimate
+        #
         ctxarray = scipy.signal.medfilt(ctxarray,kernel_size=177)
-        polyfit = np.polyfit(np.arange(0,len(ctxarray)),ctxarray,7)
-        p = np.poly1d(polyfit)
-        newctx = []
-        for x in np.arange(len(ctxarray)):
-            newctx.append(p(x))
         
+        #
+        # If "poly", then compute a 7th-order polynomial estimate of
+        #  the median filter output, and use that as our final baseline
+        #  estimate.  In general, the median-filter output *alone* is
+        #  better.
+        #
         if (args.poly == True):
+            polyfit = np.polyfit(np.arange(0,len(ctxarray)),ctxarray,7)
+            p = np.poly1d(polyfit)
+            newctx = []
+            for x in np.arange(len(ctxarray)):
+                newctx.append(p(x))
             ctxarray = newctx
             
         
