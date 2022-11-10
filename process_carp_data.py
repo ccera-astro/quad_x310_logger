@@ -305,7 +305,7 @@ for f in args.file:
                 decmin = abs(decmin) - abs(dech*60.0)
                 
                 decs = "%02d:%02d" % (dech, decmin)
-                print("decs %s" % decs)
+                #print("decs %s" % decs)
                 psrc = SkyCoord(ra = ras, dec = decs,frame = "icrs",unit = (u.hourangle,u.deg))
                 
                 #
@@ -323,6 +323,8 @@ for f in args.file:
                 # Append UTC from input record
                 #
                 ts = "%sT%02d:%02d:%02d" % (ts, int(htoks[0]), int(htoks[1]), int(htoks[2]) )
+                
+                sys.stderr.write("TS: %s\n" % ts)
                 
                 #
                 # Then convert into time acceptable to astropy
