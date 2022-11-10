@@ -355,10 +355,11 @@ for f in args.file:
                 #
                 # convert to integer--since this is in units of bins
                 #
+                slog.write("%.5f\n" % shift)
                 shift = int(shift)
                 shift *= -1
                 
-                slog.write("%d\n" % shift)
+
                 
                 #print ("Updating shift: rcnt %d shift %d fdiff %f ts %s" % (rcnt, shift, fprime-freq, ts))
 
