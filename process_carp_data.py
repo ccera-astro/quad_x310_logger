@@ -324,7 +324,7 @@ for f in args.file:
                 #
                 ts = "%sT%02d:%02d:%02d" % (ts, int(htoks[0]), int(htoks[1]), int(htoks[2]) )
                 
-                sys.stderr.write("TS: %s\n" % ts)
+                #sys.stderr.write("TS: %s\n" % ts)
                 
                 #
                 # Then convert into time acceptable to astropy
