@@ -351,7 +351,7 @@ for f in args.file:
                 #
                 # Determine difference (in MHz)
                 #
-                shift = fprime-freq
+                shift = fprime-args.tfreq
                 
                 #
                 # Then determine how many bins that is...
