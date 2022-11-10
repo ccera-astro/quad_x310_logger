@@ -207,6 +207,7 @@ adur = args.duration * 3600.0
 
 rcnt = 0
 recnum = 0
+shift = 0
 for f in args.file:
     sys.stderr.write("Processing %s...\n" % f)
     
@@ -280,56 +281,64 @@ for f in args.file:
         #  "shift".
         #
         #
-        if (args.vlsr == True and ((rcnt % 3) == 0)):
+        
+        if (args.vlsr == True):
             l = list(a)
             
             #
-            # LMST == RA in our system currently
+            # We don't need to recompute the vlsr correction that often...
             #
-            tstart = 3
-            lmst = float(htoks[tstart])*3600.0
-            lmst += float(htoks[tstart+1])*60.0
-            lmst += float(htoks[tstart+2])
-            
-            #
-            # Establish pointing to source
-            #
-            psrc = SkyCoord(ra = (float(htoks[tstart])+float(htoks[tstart+1])/60.0)*u.hourangle,
-                dec = decl*u.deg, frame = "icrs")
-            
-            #
-            # Pick apart filedate
-            #
-            ts = filedate[0:4]
-            ts += "-"
-            ts += filedate[4:6]
-            ts += "-"
-            ts += filedate[6:8]
-            
-            #
-            # Append UTC from input record
-            #
-            ts = "%sT%02d:%02d:%02d" % (ts, int(htoks[0]), int(htoks[1]), int(htoks[2]) )
-            
-            #
-            # Then convert into time acceptable to astropy
-            #
-            t = Time("%s" % ts, scale="utc",format="isot")
-            
-            
-            #v = vlsr(t,loc,psrc,verbose=False)
-            
-            #
-            # Adjust center frequency based on VLSR
-            #
-            fprime = doppler_frequency(psrc, t, freq, loc)
-            shift = fprime-freq
-            shift /= bw/len(a)
-            shift = int(shift)
+            if ((rcnt % 10) == 0):
+                #
+                # LMST == RA in our system currently
+                #
+                tstart = 3
+                
+                #
+                # Establish pointing to source
+                #
+                psrc = SkyCoord(ra = (float(htoks[tstart])+float(htoks[tstart+1])/60.0)*u.hourangle,
+                    dec = decl*u.deg, frame = "icrs")
+                
+                #
+                # Pick apart filedate
+                #
+                ts = filedate[0:4]
+                ts += "-"
+                ts += filedate[4:6]
+                ts += "-"
+                ts += filedate[6:8]
+                
+                #
+                # Append UTC from input record
+                #
+                ts = "%sT%02d:%02d:%02d" % (ts, int(htoks[0]), int(htoks[1]), int(htoks[2]) )
+                
+                #
+                # Then convert into time acceptable to astropy
+                #
+                t = Time("%s" % ts, scale="utc",format="isot")
+                
+                
+                #v = vlsr(t,loc,psrc,verbose=False)
+                
+                #
+                # Adjust center frequency based on VLSR
+                #
+                fprime = doppler_frequency(psrc, t, freq, loc)
+                shift = fprime-freq
+                shift /= bw/len(a)
+                shift = int(shift)
 
+            #
+            # Apply the current shift
+            #
             l = l[shift:]+l[:shift]
             a = np.array(l)
         
+        #
+        # Update our record counter
+        #
         rcnt += 1
         
         #
