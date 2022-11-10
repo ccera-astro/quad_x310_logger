@@ -32,8 +32,16 @@ from astropy.coordinates import SkyCoord, EarthLocation
 import astropy.units as u
 from astropy.units import Quantity
 import astropy.constants
-
 import numpy as np
+import os
+import sys
+import argparse
+import math
+import scipy.signal
+import scipy.interpolate
+import random
+import time
+
 
 # Direction of motion of the Sun. Info from
 # http://herschel.esac.esa.int/hcss-doc-15.0/load/hifi_um/html/hifi_ref_frame.html#hum_lsr_frame
@@ -78,32 +86,6 @@ def doppler_frequency(psrc, t, rest_frequency, loc,  verbose=False):
     beta = v1/astropy.constants.c
     return np.sqrt((1 + beta)/(1 - beta)) * rest_frequency
 
-if __name__=="__notusednotusednotused__":
-    freq_hi = 1420.405751
-
-    # Test 1: Source towards direction of solar motion, Earth moving prependicular
-    loc = EarthLocation.from_geodetic(lat = 45.3491*u.deg, lon = -76.0413*u.deg, height = 100*u.m)
-    psrc = SkyCoord(ra = 5.55*u.hourangle, dec = -5.38*u.deg, frame = "icrs")
-    for d in range(19,31):
-        t = Time("2022-09-%02dT08:00:00" % d, scale="utc",format="isot")
-        v = vlsr(t,loc,psrc,verbose=False)
-        #print("LSR velocity:                {0:+8.3f}".format(v.to(u.km/u.s)))
-        print ("%s %.5f" % (t.to_value("datetime"), doppler_frequency(psrc, t, 1424.734, loc)))
-    for d in range(1,7):
-        t = Time("2022-10-%02dT08:00:00" % d, scale="utc",format="isot")
-        v = vlsr(t,loc,psrc,verbose=False)
-        print ("%s %.5f " % (t.to_value("datetime"), doppler_frequency(psrc, t, 1424.734, loc)))
-        #print("LSR velocity:                {0:+8.3f}".format(v.to(u.km/u.s)))
-
-import numpy as np
-import os
-import sys
-import argparse
-import math
-import scipy.signal
-import scipy.interpolate
-import random
-import time
 
 def crunchit(indata):
     out = np.zeros(int(len(indata)/2), dtype=np.float64)
@@ -165,9 +147,10 @@ parser.add_argument("--longitude", type=float, help="Local geo longitude", defau
 args = parser.parse_args()
 
 #
-# Establish location for astropy routines
+# Establish location for astropy routines used later on
 #
-loc = EarthLocation.from_geodetic(lat = args.latitude*u.deg, lon = args.longitude*u.deg, height = 100*u.m)
+#
+geo_loc = EarthLocation.from_geodetic(lat = args.latitude*u.deg, lon = args.longitude*u.deg, height = 100*u.m)
 
 suffix = ".dat"
 sep = " "
@@ -205,9 +188,20 @@ binwidth = -1
 almst = args.lmst * 3600.0
 adur = args.duration * 3600.0
 
+#
+# Keep track of record count
+#
 rcnt = 0
 recnum = 0
+
+#
+# Used if we're doing VLSR correction
+#
+# Initial value is 0 and is in units of bins
+#
+#
 shift = 0
+
 for f in args.file:
     sys.stderr.write("Processing %s...\n" % f)
     
@@ -281,12 +275,13 @@ for f in args.file:
         #  "shift".
         #
         #
-        
         if (args.vlsr == True):
             l = list(a)
             
             #
-            # We don't need to recompute the vlsr correction that often...
+            # We don't need to recompute the vlsr correction that often,
+            #  and it is rather expensive to compute, so do this only
+            #  every 20 records or so
             #
             if ((rcnt % 20) == 0):
                 #
@@ -297,11 +292,17 @@ for f in args.file:
                 #
                 # Establish pointing to source
                 #
+                # DECL comes from header in data record
+                # Since we're a transit instrument, RA comes from LMST in data record
+                #
+                #
                 psrc = SkyCoord(ra = (float(htoks[tstart])+float(htoks[tstart+1])/60.0)*u.hourangle,
                     dec = decl*u.deg, frame = "icrs")
                 
                 #
                 # Pick apart filedate
+                #  and reformat into ISO format date
+                #
                 #
                 ts = filedate[0:4]
                 ts += "-"
@@ -320,19 +321,33 @@ for f in args.file:
                 t = Time("%s" % ts, scale="utc",format="isot")
                 
                 
-                #v = vlsr(t,loc,psrc,verbose=False)
+                #v = vlsr(t,geo_loc,psrc,verbose=False)
                 
                 #
                 # Adjust center frequency based on VLSR
                 #
-                fprime = doppler_frequency(psrc, t, freq, loc)
+                # Center freq comes from data record header
+                #
+                #
+                fprime = doppler_frequency(psrc, t, freq, geo_loc)
+                
+                #
+                # Determine difference (in MHz)
+                #
                 shift = fprime-freq
-                fdiff = fprime - freq
-                shift /= bw/len(a)
+                
+                #
+                # Then determine how many bins that is...
+                #
+                shift /= (bw/len(a))
+                
+                #
+                # convert to integer--since this is in units of bins
+                #
                 shift = int(shift)
                 shift *= -1
                 
-                #print ("Updating shift: rcnt %d shift %d fdiff %f ts %s" % (rcnt, shift, fdiff, ts))
+                #print ("Updating shift: rcnt %d shift %d fdiff %f ts %s" % (rcnt, shift, fprime-freq, ts))
 
             #
             # Apply the current shift
