@@ -300,7 +300,11 @@ for f in args.file:
                 #
                 
                 ras = "%02d:%02d:%02d" % (int(htoks[tstart]), int(htoks[tstart+1]), int(htoks[tstart+2]))
-                decs = "%02d:%02d" % (int(decl), abs(int(decl/60.0)))
+                decmin = decl * 60.0
+                dech = int(decmin/60.0)
+                decmin = abs(decmin) - abs(dech*60.0)
+                
+                decs = "%02d:%02d" % (dech, decmin)
                 psrc = SkyCoord(ra = ras, dec = decs,frame = "icrs",unit = (u.hourangle,u.deg))
                 
                 #
