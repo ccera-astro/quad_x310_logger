@@ -146,6 +146,8 @@ parser.add_argument("--longitude", type=float, help="Local geo longitude", defau
 
 args = parser.parse_args()
 
+slog = open("shiftlog.dat", "w")
+
 #
 # Establish location for astropy routines used later on
 #
@@ -346,6 +348,8 @@ for f in args.file:
                 #
                 shift = int(shift)
                 shift *= -1
+                
+                slog.write("%d\n" % shift)
                 
                 #print ("Updating shift: rcnt %d shift %d fdiff %f ts %s" % (rcnt, shift, fprime-freq, ts))
 
