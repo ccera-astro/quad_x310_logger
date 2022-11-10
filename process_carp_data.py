@@ -298,8 +298,10 @@ for f in args.file:
                 # Since we're a transit instrument, RA comes from LMST in data record
                 #
                 #
-                psrc = SkyCoord(ra = (float(htoks[tstart])+float(htoks[tstart+1])/60.0)*u.hourangle,
-                    dec = decl*u.deg, frame = "icrs")
+                
+                ras = "%02d:%02d:%02d" % (int(htoks[tstart]), int(htoks[tstart+1]), int(htoks[tstart+2]))
+                decs = "%f" % decl
+                psrc = SkyCoord(ra = ras, dec = decs,frame = "icrs",unit = (u.hourangle,u.deg))
                 
                 #
                 # Pick apart filedate
