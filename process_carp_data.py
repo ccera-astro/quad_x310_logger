@@ -330,6 +330,7 @@ for f in args.file:
                 fdiff = fprime - freq
                 shift /= bw/len(a)
                 shift = int(shift)
+                shift *= -1
                 
                 #print ("Updating shift: rcnt %d shift %d fdiff %f ts %s" % (rcnt, shift, fdiff, ts))
 
