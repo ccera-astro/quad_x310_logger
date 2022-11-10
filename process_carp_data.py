@@ -143,6 +143,7 @@ parser.add_argument("--poly", help="Apply 7th-order polynomial fit to baseline d
     action="store_true", default=False)
 parser.add_argument("--latitude", type=float, help="Local geo latitude", default=45.3491)
 parser.add_argument("--longitude", type=float, help="Local geo longitude", default=76.0413)
+parser.add_argument("--tra", type=float, help="Target RA as fractional hour-angle", default=5.58333)
 
 args = parser.parse_args()
 
@@ -305,7 +306,7 @@ for f in args.file:
                 
                 decs = "%02d:%02d" % (dech, decmin)
                 #print("decs %s" % decs)
-                psrc = SkyCoord(ra = 5.58333, dec = decs,frame = "icrs",unit = (u.hourangle,u.deg))
+                psrc = SkyCoord(ra = args.tra, dec = decs,frame = "icrs",unit = (u.hourangle,u.deg))
                 
                 #
                 # Pick apart filedate
