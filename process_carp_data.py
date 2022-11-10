@@ -306,7 +306,7 @@ for f in args.file:
                 
                 decs = "%02d:%02d" % (dech, decmin)
                 #print("decs %s" % decs)
-                psrc = SkyCoord(ra = args.tra, dec = decs,frame = "icrs",unit = (u.hourangle,u.deg))
+                psrc = SkyCoord(ra = "05:35", dec = decs,frame = "icrs",unit = (u.hourangle,u.deg))
                 
                 #
                 # Pick apart filedate
