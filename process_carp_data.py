@@ -289,7 +289,6 @@ for f in args.file:
                 #
                 # LMST == RA in our system currently
                 #
-                tstart = 3
                 
                 #
                 # Establish pointing to source
@@ -299,14 +298,14 @@ for f in args.file:
                 #
                 #
                 
-                ras = "%02d:%02d:%02d" % (int(htoks[tstart]), int(htoks[tstart+1]), int(htoks[tstart+2]))
+                ras = "%02d:%02d:%02d" % (int(htoks[3]), int(htoks[4]), int(htoks[5]))
                 decmin = decl * 60.0
                 dech = int(decmin/60.0)
                 decmin = abs(decmin) - abs(dech*60.0)
                 
                 decs = "%02d:%02d" % (dech, decmin)
                 #print("decs %s" % decs)
-                psrc = SkyCoord(ra = ras, dec = decs,frame = "icrs",unit = (u.hourangle,u.deg))
+                psrc = SkyCoord(ra = "05:35:00", dec = decs,frame = "icrs",unit = (u.hourangle,u.deg))
                 
                 #
                 # Pick apart filedate
