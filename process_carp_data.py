@@ -144,6 +144,8 @@ parser.add_argument("--poly", help="Apply 7th-order polynomial fit to baseline d
 parser.add_argument("--latitude", type=float, help="Local geo latitude", default=45.3491)
 parser.add_argument("--longitude", type=float, help="Local geo longitude", default=76.0413)
 parser.add_argument("--tra", type=float, help="Target RA as fractional hour-angle", default=5.58333)
+parser.add_argument("--tdec", type=float, help="Target DEC as fractional degrees", default=-5.38)
+parser.add_argument("--tfreq", type=float, help="Target rest frequency in MHz", default=1424.734)
 
 args = parser.parse_args()
 
@@ -155,6 +157,10 @@ slog = open("shiftlog.dat", "w")
 #
 geo_loc = EarthLocation.from_geodetic(lat = args.latitude*u.deg, lon = args.longitude*u.deg, height = 100*u.m)
 
+#
+# Establish SkyCoord for target source
+#
+psrc = SkyCoord(ra = args.tra, dec = args.tdec ,frame = "icrs",unit = (u.hourangle,u.deg))
 suffix = ".dat"
 sep = " "
 
@@ -306,7 +312,7 @@ for f in args.file:
                 
                 decs = "%02d:%02d" % (dech, decmin)
                 #print("decs %s" % decs)
-                psrc = SkyCoord(ra = args.tra, dec = decs,frame = "icrs",unit = (u.hourangle,u.deg))
+
                 
                 #
                 # Pick apart filedate
@@ -340,7 +346,7 @@ for f in args.file:
                 # Center freq comes from data record header
                 #
                 #
-                fprime = doppler_frequency(psrc, t, freq, geo_loc)
+                fprime = doppler_frequency(psrc, t, args.tfreq, geo_loc)
                 
                 #
                 # Determine difference (in MHz)
