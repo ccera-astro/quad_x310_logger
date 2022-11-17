@@ -633,6 +633,8 @@ if (args.fftout != "" and args.fftout != ""):
         #
         ksize = len(ctxarray)/5.75
         ksize = int(ksize)
+        if ((ksize % 2) == 0):
+			ksize += 1
         ctxarray = scipy.signal.medfilt(ctxarray,kernel_size=ksize)
         
         #
