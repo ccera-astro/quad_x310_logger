@@ -372,7 +372,10 @@ for f in args.file:
             # Apply the current shift
             #
             
-            shift += random.randint(-1,1)
+            #
+            # Apply some dither
+            #
+            shift += random.randint(-2,2)
             l = l[shift:]+l[:shift]
             a = np.array(l)
         
