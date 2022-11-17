@@ -375,7 +375,7 @@ for f in args.file:
             #
             # Apply some dither
             #
-            shift += random.randint(-2,2)
+            #shift += random.randint(-1,1)
             l = l[shift:]+l[:shift]
             a = np.array(l)
         
