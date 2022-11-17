@@ -87,12 +87,13 @@ def doppler_frequency(psrc, t, rest_frequency, loc,  verbose=False):
     return np.sqrt((1 + beta)/(1 - beta)) * rest_frequency
 
 
-def crunchit(indata):
-    out = np.zeros(int(len(indata)/2), dtype=np.float64)
+def crunchit(indata, crunch):
+    out = np.zeros(int(len(indata)/crunch), dtype=np.float64)
     for ndx in range(len(out)):
-        out[ndx] = indata[ndx*2]
-        out[ndx] += indata[(ndx*2)+1]
-    out = np.divide(out, 2.0)
+        out[ndx] = 0.0
+        for x in range(crunch):
+            out[ndx] += indata[(ndx*crunch)+x]
+    out = np.divide(out, float(crunch))
     return (out)
 
 def plotspec(fp, indata, freq, bw, scale, offset,sep):
@@ -134,7 +135,7 @@ parser.add_argument("--redshift", help="Compute red-shift relative to this value
 parser.add_argument("--maskcenter", help="Center frequency for masking (MHz) (TP Only)", type=float, default=0.0)
 parser.add_argument("--maskwidth", help="Width for masking (MHz) (TP Only)", type=float, default=0.0)
 parser.add_argument("--klen", help="Kernel length for final TP filter", type=int, default=1)
-parser.add_argument("--crunch", help="Halve spectral resolution", action="store_true", default=False)
+parser.add_argument("--crunch", help="Reduce spectral resolution", type=int, default=int(0))
 parser.add_argument("--plotoffset", help="Offset for intermediate plot data (Spectral only)", type=float, default=0.0)
 parser.add_argument("--csv", help="Produce CSV files", action="store_true", default=False)
 parser.add_argument("--dateify", help="Insert date into filenames", action="store_true", default=False)
@@ -564,8 +565,8 @@ if (args.fftout != "" and args.fftout != ""):
     #
     # Deal with crunchage
     #
-    if (args.crunch == True):
-        ctxarray_low = crunchit(ctxarray_low)
+    if (args.crunch > 0):
+        ctxarray_low = crunchit(ctxarray_low, args.crunch)
     
     #
     # Record the plot data
@@ -579,8 +580,8 @@ if (args.fftout != "" and args.fftout != ""):
     #
     # Deal with crunchage
     #
-    if (args.crunch == True):
-        ctxarray_high = crunchit(ctxarray_high)
+    if (args.crunch  > 0):
+        ctxarray_high = crunchit(ctxarray_high, args.crunch)
     
     #
     # Record the plot data
@@ -597,9 +598,9 @@ if (args.fftout != "" and args.fftout != ""):
     #  command line option.  This improves sensitivity at the expense of
     #  resolution.
     #
-    if (args.crunch == True):
-        fftarray = crunchit(fftarray)
-        ctxarray = crunchit(ctxarray)
+    if (args.crunch > 0):
+        fftarray = crunchit(fftarray, args.crunch)
+        ctxarray = crunchit(ctxarray, args.crunch)
         
     
     #
