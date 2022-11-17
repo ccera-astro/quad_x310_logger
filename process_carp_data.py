@@ -90,7 +90,6 @@ def doppler_frequency(psrc, t, rest_frequency, loc,  verbose=False):
 def crunchit(indata, crunch):
     out = np.zeros(int(len(indata)/crunch), dtype=np.float64)
     for ndx in range(len(out)):
-        out[ndx] = 0.0
         for x in range(crunch):
             out[ndx] += indata[(ndx*crunch)+x]
     out = np.divide(out, float(crunch))
@@ -632,7 +631,7 @@ if (args.fftout != "" and args.fftout != ""):
         # Now, apply an aggressive median-filter to that, which
         #  will produce a fairly-smooth baseline estimate
         #
-        ctxarray = scipy.signal.medfilt(ctxarray,kernel_size=177)
+        ctxarray = scipy.signal.medfilt(ctxarray,kernel_size=int(len(ctxarray)/9))
         
         #
         # If "poly", then compute a 7th-order polynomial estimate of
