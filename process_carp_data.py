@@ -631,7 +631,9 @@ if (args.fftout != "" and args.fftout != ""):
         # Now, apply an aggressive median-filter to that, which
         #  will produce a fairly-smooth baseline estimate
         #
-        ctxarray = scipy.signal.medfilt(ctxarray,kernel_size=int(len(ctxarray)/9))
+        ksize = len(ctxarray)/5.75
+        ksize = int(ksize)
+        ctxarray = scipy.signal.medfilt(ctxarray,kernel_size=ksize)
         
         #
         # If "poly", then compute a 7th-order polynomial estimate of
