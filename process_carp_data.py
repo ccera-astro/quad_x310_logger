@@ -363,7 +363,7 @@ for f in args.file:
                 #
                 slog.write("%.5f\n" % shift)
                 shift = int(shift)
-                shift *= -1
+                #shift *= -1
 
                 
                 #print ("Updating shift: rcnt %d shift %d fdiff %f ts %s" % (rcnt, shift, fprime-freq, ts))
