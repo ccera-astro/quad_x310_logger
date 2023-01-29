@@ -146,6 +146,7 @@ parser.add_argument("--longitude", type=float, help="Local geo longitude", defau
 parser.add_argument("--tra", type=float, help="Target RA as fractional hour-angle", default=5.58333)
 parser.add_argument("--tdec", type=float, help="Target DEC as fractional degrees", default=-5.38)
 parser.add_argument("--tfreq", type=float, help="Target rest frequency in MHz", default=1424.734)
+parser.add_argument("--order", type=int, help="Polynomial order for --poly option", default=7)
 
 args = parser.parse_args()
 
@@ -649,7 +650,7 @@ if (args.fftout != "" and args.fftout != ""):
         #  better.
         #
         if (args.poly == True):
-            polyfit = np.polyfit(np.arange(0,len(ctxarray)),ctxarray,7)
+            polyfit = np.polyfit(np.arange(0,len(ctxarray)),ctxarray,args.order)
             p = np.poly1d(polyfit)
             newctx = []
             for x in np.arange(len(ctxarray)):
