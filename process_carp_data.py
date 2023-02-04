@@ -142,7 +142,7 @@ parser.add_argument("--vlsr", help="Enable VLSR bin rotation", action="store_tru
 parser.add_argument("--poly", help="Apply 7th-order polynomial fit to baseline data in FFT",
     action="store_true", default=False)
 parser.add_argument("--latitude", type=float, help="Local geo latitude", default=45.3491)
-parser.add_argument("--longitude", type=float, help="Local geo longitude", default=76.0413)
+parser.add_argument("--longitude", type=float, help="Local geo longitude", default=-76.0413)
 parser.add_argument("--tra", type=float, help="Target RA as fractional hour-angle", default=5.58333)
 parser.add_argument("--tdec", type=float, help="Target DEC as fractional degrees", default=-5.38)
 parser.add_argument("--tfreq", type=float, help="Target rest frequency in MHz", default=1424.734)
