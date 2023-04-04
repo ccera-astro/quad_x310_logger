@@ -147,10 +147,12 @@ parser.add_argument("--tra", type=float, help="Target RA as fractional hour-angl
 parser.add_argument("--tdec", type=float, help="Target DEC as fractional degrees", default=-5.38)
 parser.add_argument("--tfreq", type=float, help="Target rest frequency in MHz", default=1424.734)
 parser.add_argument("--order", type=int, help="Polynomial order for --poly option", default=7)
+parser.add_argument("--normalize", action="store_true", help="Normalize every FFT value", default=False)
 
 args = parser.parse_args()
 
 slog = open("shiftlog.dat", "w")
+dlog = open("doplog.dat", "w")
 
 #
 # Establish location for astropy routines used later on
@@ -212,8 +214,13 @@ recnum = 0
 #
 shift = 0
 
+smax = 0.0
+
+sp = open("sdata.dat", "w")
+dateprinted = False
 for f in args.file:
     sys.stderr.write("Processing %s...\n" % f)
+    dlog.write("0.0\n")
     
     #
     # This "knows" what our filenaming convention is
@@ -330,6 +337,9 @@ for f in args.file:
                 # Append UTC from input record
                 #
                 ts = "%sT%02d:%02d:%02d" % (ts, int(htoks[0]), int(htoks[1]), int(htoks[2]) )
+                if (dateprinted == False):
+                    print ("%s" % ts)
+                    dateprinted = True
                 
                 #sys.stderr.write("TS: %s\n" % ts)
                 
@@ -353,6 +363,7 @@ for f in args.file:
                 # Determine difference (in MHz)
                 #
                 shift = fprime-args.tfreq
+                dlog.write("%.5f\n" % shift)
                 
                 #
                 # Then determine how many bins that is...
@@ -364,7 +375,7 @@ for f in args.file:
                 #
                 slog.write("%.5f\n" % shift)
                 shift = int(shift)
-                shift *= -1
+                #shift *= -1
 
                 
                 #print ("Updating shift: rcnt %d shift %d fdiff %f ts %s" % (rcnt, shift, fprime-freq, ts))
@@ -400,6 +411,10 @@ for f in args.file:
         #
         s = np.sum(a)
         
+        if (args.normalize == True):
+            a = np.divide(a, np.min(a))
+            
+        
         #
         # Determine LMST bin
         #
@@ -409,6 +424,12 @@ for f in args.file:
         lmst = float(htoks[tstart])*3600.0
         lmst += float(htoks[tstart+1])*60.0
         lmst += float(htoks[tstart+2])
+        
+        lmhour = lmst/3600.0
+        sp.write("%.5f %.5f\n" % (lmhour, s))
+        if (s > smax and (args.lmst-0.25 <= lmhour and lmhour <= args.lmst+0.25)):
+            smax = s
+            smax_lmst = lmst/3600.0
         
         #
         # The actual index value
@@ -469,6 +490,9 @@ for f in args.file:
             lmstcount[lmsi] += 1
             fftarray = np.add(fftarray, a)
             fftcount += 1
+    print ("smax (%f) occurred at %f" % (smax, smax_lmst))
+    smax = 0
+
     fp.close()
          
 if (args.tpout != "" and args.tpout != None):
@@ -551,7 +575,7 @@ if (args.tpout != "" and args.tpout != None):
 #
 # Process FFT data
 #
-if (args.fftout != "" and args.fftout != ""):
+if (args.fftout != "" and args.fftout != None):
     if (fftcount <= 0):
         raise ValueError("No spectral data within specified range")
     
@@ -641,10 +665,10 @@ if (args.fftout != "" and args.fftout != ""):
         ksize = int(ksize)
         if ((ksize % 2) == 0):
             ksize += 1
-        ctxarray = scipy.signal.medfilt(ctxarray,kernel_size=ksize)
+        #ctxarray = scipy.signal.medfilt(ctxarray,kernel_size=ksize)
         
         #
-        # If "poly", then compute a 7th-order polynomial estimate of
+        # If "poly", then compute a nth-order polynomial estimate of
         #  the median filter output, and use that as our final baseline
         #  estimate.  In general, the median-filter output *alone* is
         #  better.
@@ -718,7 +742,7 @@ if (args.fftout != "" and args.fftout != ""):
         # Do a little (small kernel) median filtering on the non-smooth version to reduce
         #  narrow RFI blips a bit
         #
-        fftarray = scipy.signal.medfilt(fftarray, kernel_size=1)
+        #fftarray = scipy.signal.medfilt(fftarray, kernel_size=1)
         
         fp = open(dateificate(args.fftout, args.dateify)+"-observation%s" % suffix, "w")
         plotspec(fp, fftarray, freq, bw, 1.0, 0.0, sep)
