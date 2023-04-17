@@ -153,6 +153,7 @@ args = parser.parse_args()
 
 slog = open("shiftlog.dat", "w")
 dlog = open("doplog.dat", "w")
+flog = open("freqlog.dat", "w")
 
 #
 # Establish location for astropy routines used later on
@@ -300,7 +301,7 @@ for f in args.file:
             #  and it is rather expensive to compute, so do this only
             #  every 20 records or so
             #
-            if ((rcnt % 20) == 0):
+            if ((rcnt % 40) == 0):
                 #
                 # LMST == RA in our system currently
                 #
@@ -349,7 +350,7 @@ for f in args.file:
                 t = Time("%s" % ts, scale="utc",format="isot")
                 
                 
-                #v = vlsr(t,geo_loc,psrc,verbose=False)
+                vel = vlsr(t,geo_loc,psrc,verbose=False)
                 
                 #
                 # Adjust center frequency based on VLSR
@@ -358,6 +359,7 @@ for f in args.file:
                 #
                 #
                 fprime = doppler_frequency(psrc, t, args.tfreq, geo_loc)
+                flog.write("%.5f\n" % fprime)
                 
                 #
                 # Determine difference (in MHz)
@@ -373,9 +375,10 @@ for f in args.file:
                 #
                 # convert to integer--since this is in units of bins
                 #
-                slog.write("%.5f\n" % shift)
+                grumpy = "{0:+8.3f}".format(vel.to(u.km/u.s))
+                slog.write("%.5f %s\n" % (shift,grumpy))
                 shift = int(shift)
-                #shift *= -1
+                shift *= -1
 
                 
                 #print ("Updating shift: rcnt %d shift %d fdiff %f ts %s" % (rcnt, shift, fprime-freq, ts))
