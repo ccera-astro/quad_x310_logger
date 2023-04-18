@@ -68,7 +68,7 @@ def vlsr(t,loc,psrc,verbose=False):
     
     return vsun_proj-vsrc
 
-def doppler_frequency(psrc, t, rest_frequency, loc,  verbose=False):
+def doppler_frequency(psrc, t, rest_frequency, loc, tvel, verbose=False):
     """
     Compute the Doppler corrected frequency, taking into account the line of sight radial velocity.
 
@@ -82,9 +82,10 @@ def doppler_frequency(psrc, t, rest_frequency, loc,  verbose=False):
         Quantity: Observable frequency
     """
     v1 = vlsr(t, loc, psrc, verbose=verbose)
+    v1 += tvel*(u.km/u.s)
 
     beta = v1/astropy.constants.c
-    return np.sqrt((1 + beta)/(1 - beta)) * rest_frequency
+    return (np.sqrt((1 + beta)/(1 - beta)) * rest_frequency)
 
 
 def crunchit(indata, crunch):
@@ -148,6 +149,7 @@ parser.add_argument("--tdec", type=float, help="Target DEC as fractional degrees
 parser.add_argument("--tfreq", type=float, help="Target rest frequency in MHz", default=1424.734)
 parser.add_argument("--order", type=int, help="Polynomial order for --poly option", default=7)
 parser.add_argument("--normalize", action="store_true", help="Normalize every FFT value", default=False)
+parser.add_argument("--tvel", type=float, help="Target expected velocity relative to Vlsr", default=0.0)
 
 args = parser.parse_args()
 
@@ -301,7 +303,7 @@ for f in args.file:
             #  and it is rather expensive to compute, so do this only
             #  every 20 records or so
             #
-            if ((rcnt % 40) == 0):
+            if ((rcnt % 50) == 0):
                 #
                 # LMST == RA in our system currently
                 #
@@ -351,6 +353,7 @@ for f in args.file:
                 
                 
                 vel = vlsr(t,geo_loc,psrc,verbose=False)
+                vel += args.tvel*(u.km/u.s)
                 
                 #
                 # Adjust center frequency based on VLSR
@@ -358,7 +361,7 @@ for f in args.file:
                 # Center freq comes from data record header
                 #
                 #
-                fprime = doppler_frequency(psrc, t, args.tfreq, geo_loc)
+                fprime = doppler_frequency(psrc, t, args.tfreq, geo_loc, args.tvel)
                 flog.write("%.5f\n" % fprime)
                 
                 #
